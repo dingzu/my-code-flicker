@@ -34,7 +34,10 @@
     </div>
 
     <!-- Assets Panel -->
-    <AssetsPanel v-if="assetsOpen" @close="assetsOpen = false" />
+    <AssetsPanel v-if="assetsOpen" @close="assetsOpen = false" @select-asset="onSelectAsset" />
+
+    <!-- Asset Preview -->
+    <AssetPreview v-if="previewAsset" :asset="previewAsset" @close="previewAsset = null" />
   </div>
 </template>
 
@@ -45,10 +48,16 @@ import ChatMessages from './ChatMessages.vue'
 import ChatInput from './ChatInput.vue'
 import NewChatView from './NewChatView.vue'
 import AssetsPanel from './AssetsPanel.vue'
+import AssetPreview from './AssetPreview.vue'
 
 const sidebarStore = useSidebarStore()
 const bodyRef = ref(null)
 const assetsOpen = ref(false)
+const previewAsset = ref(null)
+
+function onSelectAsset(asset) {
+  previewAsset.value = asset
+}
 
 const currentMessages = computed(() => {
   const id = sidebarStore.activeSessionId

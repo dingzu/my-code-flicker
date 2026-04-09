@@ -60,7 +60,7 @@
           <ul class="cap-list">
             <li><span class="cap-row-label">本地</span>Node + Gateway</li>
             <li><span class="cap-row-label">云端</span>云端 Gateway</li>
-            <li><span class="cap-row-label">端</span>IM · Web · 桌面</li>
+            <li><span class="cap-row-label">渠道</span>IM · Web · 客户端</li>
           </ul>
         </div>
 
@@ -72,9 +72,9 @@
             <span class="cap-card-title">CodeFlicker</span>
           </div>
           <ul class="cap-list">
-            <li><span class="cap-row-label">本地</span>IDE 编辑器 · Duet 并行</li>
-            <li><span class="cap-row-label">云端</span>云端 IDE · Duet 并行</li>
-            <li><span class="cap-row-label">端</span>桌面 IDE · 云端 IDE</li>
+            <li><span class="cap-row-label">本地</span>IDE 编辑器 · Duet 模式</li>
+            <li><span class="cap-row-label">云端</span>云端 IDE · Duet 模式</li>
+            <li><span class="cap-row-label">渠道</span>Web · 客户端 · IDE · CLI</li>
           </ul>
         </div>
       </div>
@@ -113,7 +113,7 @@
             <div class="pm-node pm-node-sessions">
               <div class="pm-node-icon">⚡</div>
               <div class="pm-node-title">Sessions</div>
-              <div class="pm-node-sub">Duet 并行<br>Session 级 Agent 路由</div>
+              <div class="pm-node-sub">Duet 模式<br>Session 级 Agent 路由</div>
               <div class="pm-node-agents">
                 <span class="pm-agent pm-agent-cf">CF Agent</span>
                 <span class="pm-agent pm-agent-gw">Gateway</span>
@@ -294,7 +294,7 @@
           <div class="ia-node ia-l2">
             <div class="ia-node-icon">⚡</div>
             <div class="ia-node-name">Sessions</div>
-            <div class="ia-node-sub">Duet 并行<br>Session 级路由</div>
+            <div class="ia-node-sub">Duet 模式<br>Session 级路由</div>
           </div>
           <div class="ia-node ia-l2">
             <div class="ia-node-icon">📄</div>
@@ -403,7 +403,7 @@
           <div class="arch-layer-label">项目层（新增）</div>
           <div class="arch-layer-nodes">
             <div class="arch-node arch-node-project">Project Service<div class="arch-node-sub">项目 CRUD · Assets · Outputs</div></div>
-            <div class="arch-node arch-node-project">Session Orchestrator<div class="arch-node-sub">Duet 并行调度 · Agent 路由</div></div>
+            <div class="arch-node arch-node-project">Session Orchestrator<div class="arch-node-sub">Duet 模式调度 · Agent 路由</div></div>
           </div>
         </div>
         <div class="arch-arrow-row">↓ &nbsp; Session 级 Agent 路由 &nbsp; ↓</div>
@@ -591,7 +591,7 @@ const decisions = [
     num: '决策 C',
     title: '项目上下文模型 = 「文件夹」',
     desc: 'Session 之间隔离运行，通过共享 /outputs/ 目录异步传递产出，看不到彼此对话上下文。',
-    rationale: '「文件夹」是用户已经理解的心智模型，工程复杂度可控，同时支撑 Duet 并行的核心价值。'
+    rationale: '「文件夹」是用户已经理解的心智模型，工程复杂度可控，同时支撑 Duet 模式的核心价值。'
   },
   {
     num: '决策 D',
@@ -643,7 +643,7 @@ const todoOpen = [
   'Agent 统一接口层：CF Agent 和 Gateway Agent 如何共用同一套 session 协议？',
   'Outputs 视图 UI：如何清晰呈现多个并行 session 的产出，防止信噪比差？',
   '独立对话升级为项目的交互流程：触发时机、迁移逻辑、Assets 归属',
-  'Duet 并行 session 的 UI 表达：多标签？分屏？如何感知并行状态？',
+  'Duet 模式 session 的 UI 表达：多标签？分屏？如何感知并行状态？',
   '本地 workspace 权限模型：多端访问时如何安全隔离？',
 ]
 const techTodos = [
@@ -667,7 +667,7 @@ const modules = [
   },
   {
     name: 'Session Orchestrator',
-    title: 'Duet 并行调度器',
+    title: 'Duet 模式调度器',
     desc: '管理同一项目下多个并行 Session 的生命周期，执行 Agent 路由决策，分发任务给对应的 Agent Runtime。',
     props: [
       { k: 'Agent 路由', v: '手动指定 > 智能推断 > 项目默认 > 全局默认' },

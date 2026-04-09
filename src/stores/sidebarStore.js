@@ -59,7 +59,9 @@ export const useSidebarStore = defineStore('sidebar', () => {
       { role: 'agent', text: '23% 确实偏低，SaaS 工具一般在 35-50%。\n\n先问几个问题：\n1. 你们的"激活"怎么定义？\n2. 用户主要从哪个渠道来？\n3. 现在 onboarding 是几步？', id: 21 },
       { role: 'user', text: '激活 = 注册后 24h 内发起第一个 AI 对话。自然流量为主。现在 4 步：填资料→选场景→建项目→开始对话，可以跳过', id: 22 },
       { role: 'agent', text: '找到问题了。**路径太长 + 价值前置不足。**\n\n用户注册后最想做的是"马上感受到魔法"，但你现在让他先付出三步才有收获。\n\n**改进方向：**\n\n① **压缩到 1 步**：注册完直接进对话界面，填资料全部后置\n\n② **用模板替代"建项目"**：给 3 张场景卡片（产品设计 / 代码开发 / 数据分析），点一下直接进入预设对话\n\n③ **第一条 Agent 回复要有"哇塞"感**：这是关键转化点，回复要足够聪明和具体\n\n要我帮你拆解 Notion 或 Linear 的 onboarding 做对比参考吗？', id: 23 },
-    
+    ],
+  })
+
 
   function getMessages(sessionId) {
     if (!messages.value[sessionId]) messages.value[sessionId] = []

@@ -1,0 +1,31 @@
+/* CSS 变量 & 全局重置 */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+.hidden { display: none !important; }
+
+:root {
+  --sidebar-w: 220px;
+  --sidebar-bg: transparent;
+  --sidebar-active: rgba(255,255,255,0.1);
+  --sidebar-hover: rgba(255,255,255,0.06);
+  --sidebar-text: rgba(30,30,40,0.88);
+  --sidebar-muted: rgba(30,30,40,0.42);
+  --sidebar-border: rgba(255,255,255,0.1);
+  --content-bg: transparent;
+  --card-bg: rgba(255,255,255,0.82);
+  --card-radius: 12px;
+  --gap: 8px;
+  --text-primary: #1a1a1a;
+  --text-muted: #888;
+  --border: rgba(0,0,0,0.08);
+  --red:   #ff5f57;
+  --amber: #ffbd2e;
+  --green: #28c840;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: #6e7a8a;
+  font-family: 'DM Sans', -apple-system, 'PingFang SC', sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}

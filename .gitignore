@@ -1,49 +1,24 @@
-# ── macOS ──
-.DS_Store
-.AppleDouble
-.LSOverride
-._*
-.Spotlight-V100
-.Trashes
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# ── IDE / Editor ──
-.idea/
-.vscode/
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-*.swp
-.cursor/
-
-# ── Node / npm / pnpm / yarn ──
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-.pnpm-store/
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
-# ── Build output ──
-dist/
-build/
-out/
-.output/
-
-# ── Env / secrets ──
-.env
-.env.local
-.env.*.local
-
-# ── Logs ──
-logs/
-*.log
-
-# ── Temp ──
-tmp/
-temp/
-.cache/

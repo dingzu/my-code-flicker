@@ -1,10 +1,10 @@
 <template>
   <div class="doc-content">
 
-    <!-- 序 -->
+    <!-- 概览 -->
     <template v-if="pageId === 'preface'">
-      <div class="doc-hero-tag">PREFACE</div>
-      <h1 class="doc-h1">序</h1>
+      <div class="doc-hero-tag">OVERVIEW</div>
+      <h1 class="doc-h1">Myflicker 产品文档</h1>
       <p class="doc-meta">一寒 · 2026 年 Q2</p>
       <hr class="doc-divider">
       <p class="doc-p">这是一份关于 Myflicker 的产品设计文档。</p>
@@ -524,7 +524,7 @@ code {
   padding: 1px 5px; border-radius: 4px;
 }
 
-/* ── 序 / TOC ── */
+/* ── 概览 / TOC ── */
 .doc-toc { display: flex; flex-direction: column; gap: 8px; }
 .doc-toc-item {
   display: flex; align-items: center; gap: 14px;

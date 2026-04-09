@@ -7,7 +7,7 @@ export const useDocStore = defineStore('doc', () => {
   const activePage = ref('preface')
 
   const pages = [
-    { id: 'preface', title: '序' },
+    { id: 'preface', title: '产品文档概览' },
     { id: 'brief',   title: '产品思路 · 融合方案' },
   ]
 

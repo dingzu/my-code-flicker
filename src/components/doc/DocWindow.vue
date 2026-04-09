@@ -77,7 +77,7 @@ const currentPageTitle = computed(() => {
   position: fixed;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%) scale(1);
-  width: min(820px, 92vw); height: min(620px, 88vh);
+  width: min(1060px, 94vw); height: min(760px, 90vh);
   background: #fafaf8;
   border-radius: 12px;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 20px 60px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.12);

@@ -21,7 +21,7 @@ const docStore = useDocStore()
 
 <style>
 .doc-nav {
-  width: 196px; flex-shrink: 0;
+  width: 220px; flex-shrink: 0;
   background: #f0efed;
   border-right: 1px solid rgba(0,0,0,0.08);
   overflow-y: auto; overflow-x: hidden;

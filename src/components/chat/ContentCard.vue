@@ -4,6 +4,41 @@
     <div class="card-header">
       <div class="card-title-icon"></div>
       <span class="card-title">{{ sidebarStore.activeSessionName }}</span>
+
+      <!-- Project context selector -->
+      <div class="header-ctx-wrap" ref="ctxBarRef">
+        <button
+          class="ctx-pill"
+          :class="{
+            'ctx-pill-ws': ctxType === 'ws',
+            'ctx-pill-cloud': ctxType === 'cloud',
+            'ctx-pill-free': ctxType === 'cloud-free',
+          }"
+          @click.stop="ctxOpen = !ctxOpen"
+        >
+          <svg v-if="ctxType === 'ws'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          </svg>
+          <svg v-else-if="ctxType === 'cloud'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+          </svg>
+          <span>{{ ctxLabel }}</span>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+
+        <CtxMenu
+          :visible="ctxOpen"
+          v-model="ctxId"
+          @update:label="ctxLabel = $event"
+          @update:type="ctxType = $event"
+          @new-project="openNewProject"
+          @close="ctxOpen = false"
+          placement="header"
+        />
+      </div>
+
       <div class="card-header-actions">
         <button class="header-btn">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
@@ -37,13 +72,20 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, nextTick } from 'vue'
+import { computed, ref, watch, nextTick, inject, onMounted, onUnmounted } from 'vue'
 import { useSidebarStore } from '../../stores/sidebarStore'
 import ChatMessages from './ChatMessages.vue'
 import ChatInput from './ChatInput.vue'
+import CtxMenu from './CtxMenu.vue'
 
 const sidebarStore = useSidebarStore()
+const sheetVisible = inject('sheetVisible', null)
 const bodyRef = ref(null)
+const ctxBarRef = ref(null)
+const ctxOpen = ref(false)
+const ctxId = ref('proj1')
+const ctxLabel = ref('dz-s-agent-hiro')
+const ctxType = ref('ws')
 
 const currentMessages = computed(() => {
   const id = sidebarStore.activeSessionId
@@ -55,6 +97,20 @@ watch(currentMessages, async () => {
   await nextTick()
   if (bodyRef.value) bodyRef.value.scrollTop = bodyRef.value.scrollHeight
 }, { deep: true })
+
+function openNewProject() {
+  ctxOpen.value = false
+  if (sheetVisible) sheetVisible.value = true
+}
+
+// 点击外部关闭
+function onDocClick(e) {
+  if (ctxOpen.value && ctxBarRef.value && !ctxBarRef.value.contains(e.target)) {
+    ctxOpen.value = false
+  }
+}
+onMounted(() => document.addEventListener('click', onDocClick))
+onUnmounted(() => document.removeEventListener('click', onDocClick))
 </script>
 
 <style>
@@ -88,6 +144,11 @@ watch(currentMessages, async () => {
   font-size: 14px; font-weight: 500;
   color: var(--text-primary);
   letter-spacing: -0.01em;
+}
+.header-ctx-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 .card-header-actions {
   margin-left: auto;

@@ -87,6 +87,7 @@ import { useSidebarStore } from '../../stores/sidebarStore'
 const props = defineProps({
   visible: Boolean,
   modelValue: String,
+  placement: { type: String, default: 'bottom' }, // 'bottom' = above trigger, 'header' = below trigger
 })
 const emit = defineEmits(['update:modelValue', 'update:label', 'update:type', 'new-project', 'close'])
 
@@ -105,12 +106,12 @@ function select(id, label, type) {
 <style>
 .ctx-menu {
   position: absolute;
-  bottom: calc(100% + 4px); left: 0;
+  top: calc(100% + 4px); left: 0;
   background: #fff;
   border-radius: 11px;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.06);
   width: 280px;
-  z-index: 500;
+  z-index: 600;
   overflow: hidden;
   padding: 6px;
 }

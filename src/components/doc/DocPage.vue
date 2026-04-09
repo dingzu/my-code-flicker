@@ -28,37 +28,37 @@
     <template v-if="pageId === 'brief'">
       <div class="doc-hero-tag">PRODUCT BRIEF</div>
       <h1 class="doc-h1">Myflicker：打通 AI IDE 与 AI 通用助手</h1>
-      <p class="doc-meta">一寒 · 2026 年 Q2 · 设计草稿</p>
+      <p class="doc-meta">一寒 · 2026 年 Q2 · 设计草稿 v2</p>
       <hr class="doc-divider">
 
-      <h2 class="doc-h2">背景</h2>
-      <p class="doc-p">我们有两款成熟产品，能力互补但相互割裂：</p>
+      <h2 class="doc-h2">能力版图</h2>
+      <p class="doc-p">两款产品能力互补，底层技术栈不同：</p>
       <div class="doc-compare">
+        <div class="doc-compare-col doc-col-mf">
+          <div class="doc-compare-label">Myflicker + OpenClaw</div>
+          <ul class="doc-list">
+            <li>本地：Node + Gateway（有完整 Agent 能力）</li>
+            <li>云端：云端 Gateway</li>
+            <li>IM / Web / 桌面客户端均可用</li>
+            <li>访问云端文件系统</li>
+          </ul>
+        </div>
         <div class="doc-compare-col doc-col-cf">
           <div class="doc-compare-label">CodeFlicker</div>
           <ul class="doc-list">
-            <li>绑定本地 workspace（文件夹 + Git）</li>
-            <li>并行多对话，支持启动本地 IDE</li>
+            <li>本地：IDE 编辑器 + Duet（一个工作区下并行多个 Agent）</li>
+            <li>云端：IDE 编辑器（云端）+ Duet</li>
             <li>自研 Agent，深度代码理解</li>
-            <li><strong>短板：</strong>只能本地/云服务，IM 无法用</li>
-          </ul>
-        </div>
-        <div class="doc-compare-col doc-col-mf">
-          <div class="doc-compare-label">Myflicker</div>
-          <ul class="doc-list">
-            <li>IM 内对话、Web、本地客户端均可用</li>
-            <li>访问云端文件系统</li>
-            <li>对话分组，底层 OpenClaw</li>
-            <li><strong>短板：</strong>无工作区感知，无本地执行能力</li>
+            <li>Duet = 多个独立 session 同时跑，共享工作区</li>
           </ul>
         </div>
       </div>
 
-      <h2 class="doc-h2">融合思路</h2>
-      <p class="doc-p">核心原则：<strong>以「项目」为中心</strong>，而非以「模式」为入口。</p>
       <div class="doc-callout">
-        💡 用户不应该在开始工作前先想"我该用 CodeFlicker 还是 Myflicker"——他们只是想完成一件事。
+        💡 Gateway 本身有完整的 Agent 能力（任务调度 + 上下文管理 + 工具调用），与 CF 自研 Agent 在能力维度对等，区别在于开源 vs 自研、优化方向不同。
       </div>
+
+      <h2 class="doc-h2">核心设计决策</h2>
       <div class="doc-steps">
         <div class="doc-step" v-for="step in steps" :key="step.num">
           <div class="doc-step-num">{{ step.num }}</div>
@@ -69,19 +69,90 @@
         </div>
       </div>
 
-      <h2 class="doc-h2">信息架构</h2>
+      <h2 class="doc-h2">项目（Project）模型</h2>
+      <p class="doc-p">项目是永久的，类比 GitHub repo——用户可以长期积累和管理工作成果。</p>
+      <div class="doc-ia">
+        <div class="doc-ia-row">
+          <div class="doc-ia-node doc-ia-node-root">项目（永久，类 GitHub repo）</div>
+        </div>
+        <div class="doc-ia-row">
+          <div class="doc-ia-node doc-ia-node-mid">Sessions<div class="doc-ia-sub">Duet 并行，session 级 Agent 路由</div></div>
+          <div class="doc-ia-node doc-ia-node-mid">Outputs<div class="doc-ia-sub">自动归档 · Agent 提炼产出摘要</div></div>
+          <div class="doc-ia-node doc-ia-node-mid">Assets<div class="doc-ia-sub">本地 workspace + 云端文件系统</div></div>
+        </div>
+        <div class="doc-ia-row">
+          <div class="doc-ia-node doc-ia-node-leaf">CF Agent<div class="doc-ia-sub">本地 / 云端 IDE</div></div>
+          <div class="doc-ia-node doc-ia-node-leaf">Gateway Agent<div class="doc-ia-sub">本地 Node / 云端</div></div>
+          <div class="doc-ia-node doc-ia-node-leaf">文件变更<div class="doc-ia-sub">+ Agent 摘要</div></div>
+        </div>
+      </div>
+
+      <h2 class="doc-h2">Session 级 Agent 路由</h2>
+      <p class="doc-p">Agent 路由不在项目层决定，而在每个 session 启动时按需选择——用户知道这次任务要做什么，让路由粒度与用户行为粒度对齐。</p>
+      <div class="doc-compare">
+        <div class="doc-compare-col doc-col-cf">
+          <div class="doc-compare-label">CF Agent（选此项时）</div>
+          <ul class="doc-list">
+            <li>需要修改本地/云端 IDE 文件</li>
+            <li>需要启动本地 IDE 工具</li>
+            <li>深度代码理解与重构</li>
+          </ul>
+        </div>
+        <div class="doc-compare-col doc-col-mf">
+          <div class="doc-compare-label">Gateway Agent（选此项时）</div>
+          <ul class="doc-list">
+            <li>快速问答、文档分析</li>
+            <li>云端文件读写</li>
+            <li>跨端访问（IM / Web）</li>
+          </ul>
+        </div>
+      </div>
+      <div class="doc-callout">
+        🤖 可做智能推断：用户第一句话隐含意图 → 自动选 Agent，保留手动覆盖能力。
+      </div>
+
+      <h2 class="doc-h2">Outputs：「文件夹」上下文模型</h2>
+      <p class="doc-p">同一项目下并行的 session 之间是隔离的——各自独立运行，看不到彼此的对话上下文，但能看到彼此产出的文件。上下文模型是「文件夹」。</p>
+      <div class="doc-ia">
+        <div class="doc-ia-row">
+          <div class="doc-ia-node doc-ia-node-root">项目 /outputs/</div>
+        </div>
+        <div class="doc-ia-row">
+          <div class="doc-ia-node doc-ia-node-mid">文件变更<div class="doc-ia-sub">diff 粒度，类 git commit</div></div>
+          <div class="doc-ia-node doc-ia-node-mid">产出摘要<div class="doc-ia-sub">Agent 自动提炼</div></div>
+        </div>
+        <div class="doc-ia-row">
+          <div class="doc-ia-node doc-ia-node-leaf">Session A 产出</div>
+          <div class="doc-ia-node doc-ia-node-leaf">Session B 产出</div>
+          <div class="doc-ia-node doc-ia-node-leaf">Session C 产出</div>
+        </div>
+      </div>
+      <p class="doc-p" style="margin-top:8px">归档的是「产物」而非「内容」：文件变更 ✅、新建文档 ✅、执行报告 ✅；对话解释 ❌、中间推理 ❌。</p>
+
+      <h2 class="doc-h2">整体信息架构</h2>
       <div class="doc-ia">
         <div class="doc-ia-row doc-ia-root">
           <div class="doc-ia-node doc-ia-node-root">Myflicker</div>
         </div>
         <div class="doc-ia-row">
-          <div class="doc-ia-node doc-ia-node-mid">项目<div class="doc-ia-sub">可选绑定工作区</div></div>
-          <div class="doc-ia-node doc-ia-node-mid">独立对话<div class="doc-ia-sub">云端，无项目上下文</div></div>
+          <div class="doc-ia-node doc-ia-node-mid">项目<div class="doc-ia-sub">永久，类 GitHub repo</div></div>
+          <div class="doc-ia-node doc-ia-node-mid">独立对话<div class="doc-ia-sub">云端，无项目上下文，可升级</div></div>
         </div>
         <div class="doc-ia-row">
-          <div class="doc-ia-node doc-ia-node-leaf">本地工作区<div class="doc-ia-sub">CodeFlicker Agent</div></div>
-          <div class="doc-ia-node doc-ia-node-leaf">云端工作区<div class="doc-ia-sub">CodeFlicker Remote Agent</div></div>
-          <div class="doc-ia-node doc-ia-node-leaf">云端<div class="doc-ia-sub">OpenClaw</div></div>
+          <div class="doc-ia-node doc-ia-node-leaf">本地工作区<div class="doc-ia-sub">CF Agent</div></div>
+          <div class="doc-ia-node doc-ia-node-leaf">云端工作区<div class="doc-ia-sub">CF Remote Agent</div></div>
+          <div class="doc-ia-node doc-ia-node-leaf">云端<div class="doc-ia-sub">Gateway Agent</div></div>
+        </div>
+      </div>
+
+      <h2 class="doc-h2">降低项目创建门槛</h2>
+      <div class="doc-steps">
+        <div class="doc-step" v-for="ep in entryPoints" :key="ep.num">
+          <div class="doc-step-num">{{ ep.num }}</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">{{ ep.title }}</div>
+            <p class="doc-step-desc">{{ ep.desc }}</p>
+          </div>
         </div>
       </div>
 
@@ -103,25 +174,66 @@ defineProps({ pageId: String })
 const docStore = useDocStore()
 
 const steps = [
-  { num: '01', title: '统一「项目」概念', desc: '项目 = 工作上下文容器。可绑定本地工作区（CodeFlicker 模式），也可只用云端（Myflicker 模式）。这个选择在创建项目时做一次，后续对话自动继承，不再重复选。' },
-  { num: '02', title: '对话框零摩擦启动', desc: '打开 Myflicker，直接就是输入框。执行位置通过输入框上方的轻量 pill 选择，不做强制引导。独立对话默认云端；在项目内的对话自动继承项目执行环境。' },
-  { num: '03', title: '统一 Agent 调度层', desc: '底层根据执行位置路由：本地工作区 → CodeFlicker Agent（本地运行）；云端 → OpenClaw（云端运行）。UI 层不感知差异，用户只需关注「任务」而非「引擎」。' },
-  { num: '04', title: '多端一致体验', desc: 'IM 插件、Web、桌面客户端共享同一个项目/对话数据。桌面端额外支持本地工作区绑定和 IDE 联动，IM/Web 端自动降级为云端模式，数据不丢失。' },
+  {
+    num: '01',
+    title: '双 Agent 共存，不强制统一',
+    desc: 'CF 自研 Agent 和 Gateway Agent 各自保留特长，不做底层合并。项目层不感知用哪个，由每个 session 在启动时路由，保持各自能力不妥协。'
+  },
+  {
+    num: '02',
+    title: 'Session 级 Agent 路由',
+    desc: '路由粒度细化到单次 session。同一个项目里，Session A 可以跑 CF Agent 改代码，Session B 同时跑 Gateway Agent 做调研——Duet 的并行价值得以真正释放。'
+  },
+  {
+    num: '03',
+    title: '项目 = 「文件夹」上下文模型',
+    desc: '并行 session 之间隔离运行，通过共享 /outputs/ 目录看到彼此产出。Agent 产出自动归档，用户在项目产出视图里看到所有 session 沉淀的成果，而非聊天记录。'
+  },
+  {
+    num: '04',
+    title: '对话框零摩擦启动',
+    desc: '进入 Myflicker 直接就是输入框。执行位置通过输入框上方的轻量 context pill 选择，不做强制引导。独立对话默认云端；项目内的对话继承项目配置。'
+  },
+]
+
+const entryPoints = [
+  {
+    num: 'A',
+    title: '独立对话 → 升级为项目',
+    desc: '先随便聊，觉得值得长期管理时一键「升级为项目」。历史对话自动迁移为项目的第一个 session，/outputs/ 同步归档。不强迫用户提前决策。'
+  },
+  {
+    num: 'B',
+    title: '从模板创建项目',
+    desc: '代码项目（预设 CF Agent + Git 绑定）、调研项目（预设 Gateway + 文档工具）、产品设计（预设 Gateway + 原型资产）、空白项目。降低配置成本。'
+  },
+  {
+    num: 'C',
+    title: '直接新建空白项目',
+    desc: '老用户路径，直接创建永久项目，手动配置执行环境和 Assets。'
+  },
 ]
 
 const todos = [
-  { tag: '待定', tagClass: 'doc-tag-todo', text: 'Agent 调度层 API 设计：如何让两套 Agent 共用统一接口？' },
-  { tag: '待定', tagClass: 'doc-tag-todo', text: '本地 workspace 的权限模型：多端访问时如何安全隔离？' },
+  { tag: '待定', tagClass: 'doc-tag-todo', text: 'Agent 统一接口层设计：如何让 CF Agent 和 Gateway Agent 共用同一套 session 协议？' },
+  { tag: '待定', tagClass: 'doc-tag-todo', text: 'Outputs 视图 UI 设计：如何清晰呈现多个并行 session 的产出？防止信噪比差。' },
+  { tag: '待定', tagClass: 'doc-tag-todo', text: '独立对话升级为项目的交互流程：触发时机、迁移逻辑、Assets 归属。' },
+  { tag: '待定', tagClass: 'doc-tag-todo', text: 'Duet 并行 session 的 UI 表达：多标签？分屏？怎么切换和感知并行状态？' },
+  { tag: '待定', tagClass: 'doc-tag-todo', text: '本地 workspace 权限模型：多端访问时如何安全隔离？' },
   { tag: '进行中', tagClass: 'doc-tag-doing', text: '桌面端 UI 原型（本文件即产出）' },
   { tag: '完成', tagClass: 'doc-tag-done', text: '新建对话流程设计：以输入为中心 + 轻量 context pill' },
   { tag: '完成', tagClass: 'doc-tag-done', text: '项目概念替换原有「分组」，支持工作区绑定' },
+  { tag: '完成', tagClass: 'doc-tag-done', text: 'Session 级 Agent 路由方向确定：双 Agent 共存，不强制统一' },
+  { tag: '完成', tagClass: 'doc-tag-done', text: '「文件夹」上下文模型确定：session 隔离，通过 /outputs/ 共享产出' },
+  { tag: '完成', tagClass: 'doc-tag-done', text: '项目生命周期确定：永久，类 GitHub repo' },
+  { tag: '完成', tagClass: 'doc-tag-done', text: '项目入口确定：模板创建 + 独立对话升级' },
 ]
 </script>
 
 <style>
 .doc-content {
   max-width: 640px; margin: 0 auto;
-  padding: 48px 32px 0;
+  padding: 48px 32px 40px;
 }
 .doc-hero-tag {
   font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
@@ -180,7 +292,7 @@ const todos = [
   border: 1px solid rgba(0,0,0,0.07);
 }
 .doc-ia-row {
-  display: flex; gap: 12px; justify-content: center;
+  display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
 }
 .doc-ia-row + .doc-ia-row { margin-top: 10px; }
 .doc-ia-node {

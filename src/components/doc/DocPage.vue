@@ -567,7 +567,7 @@ code {
 .cap-card-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .cap-dot-mf { background: #6366f1; }
 .cap-dot-cf { background: #16a34a; }
-.cap-card-title { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.cap-card-title { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
 .cap-card-subtitle { font-size: 10.5px; font-weight: 400; letter-spacing: 0.02em; margin-top: 1px; opacity: 0.65; }
 .cap-card-mf .cap-card-title { color: #4338ca; }
 .cap-card-cf .cap-card-title { color: #15803d; }

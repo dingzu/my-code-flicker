@@ -113,6 +113,28 @@
 
       <h2 class="doc-h2">Outputs：「文件夹」上下文模型</h2>
       <p class="doc-p">同一项目下并行的 session 之间是隔离的——各自独立运行，看不到彼此的对话上下文，但能看到彼此产出的文件。上下文模型是「文件夹」。</p>
+      <p class="doc-p">两种 Agent 对「文件夹」的实现方式不同：</p>
+      <div class="doc-compare">
+        <div class="doc-compare-col doc-col-cf">
+          <div class="doc-compare-label">CF Agent</div>
+          <ul class="doc-list">
+            <li><strong>物理隔离</strong>：访问边界 = workspace 文件夹</li>
+            <li>跨出项目需要切换工作区</li>
+            <li>文件夹即沙箱，边界清晰</li>
+          </ul>
+        </div>
+        <div class="doc-compare-col doc-col-mf">
+          <div class="doc-compare-label">Gateway / OpenClaw</div>
+          <ul class="doc-list">
+            <li><strong>上下文聚焦圈</strong>：默认访问全部云端文件</li>
+            <li>项目资产自动注入为优先上下文</li>
+            <li>用户指令可随时临时扩展边界</li>
+          </ul>
+        </div>
+      </div>
+      <div class="doc-callout">
+        💡 OpenClaw 的全局访问能力不需要被限制，「项目」对它来说是上下文锚点而非沙箱。这也带来了 CF Agent 不具备的跨项目引用能力：在一个 session 里可以直接说「参考我在 XX 项目里做过的方案」，Agent 直接跨项目读取。
+      </div>
       <div class="doc-ia">
         <div class="doc-ia-row">
           <div class="doc-ia-node doc-ia-node-root">项目 /outputs/</div>

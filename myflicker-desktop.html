@@ -1512,13 +1512,17 @@
   const tb  = document.getElementById('titlebar');
   let drag = false, ox = 0, oy = 0, tx = 0, ty = 0;
 
-  tb.addEventListener('mousedown', e => {
+  // sidebar top area also drags the main window
+  const sidebarTitlebar = document.querySelector('.sidebar-titlebar');
+  function startWinDrag(e) {
     if (e.target.classList.contains('tl') || e.target.closest('.sidebar-title-btn')) return;
     drag = true;
     ox = e.clientX - tx; oy = e.clientY - ty;
     win.style.transition = 'none';
     document.body.style.userSelect = 'none';
-  });
+  }
+  tb.addEventListener('mousedown', startWinDrag);
+  sidebarTitlebar.addEventListener('mousedown', startWinDrag);
   document.addEventListener('mousemove', e => {
     if (!drag) return;
     tx = e.clientX - ox; ty = e.clientY - oy;
@@ -1732,11 +1736,25 @@
     openNewChat();
   }
 
+  // ── Window z-index management ──
+  let topZ = 1500;
+  const docWin = document.getElementById('docWindow');
+  const mainWin = document.getElementById('mainWindow');
+
+  function bringToFront(el) {
+    topZ += 10;
+    el.style.zIndex = topZ;
+  }
+
+  // click to bring doc window to front
+  docWin.addEventListener('mousedown', () => bringToFront(docWin));
+  mainWin.addEventListener('mousedown', () => bringToFront(mainWin));
+
   // ── Doc Window ──
   let docDragging = false, docDx = 0, docDy = 0, docX = 0, docY = 0;
 
   function toggleDoc() {
-    const w = document.getElementById('docWindow');
+    const w = docWin;
     const isOpen = !w.classList.contains('hidden');
     if (isOpen) {
       w.style.opacity = '0';
@@ -1744,6 +1762,7 @@
       setTimeout(() => w.classList.add('hidden'), 220);
     } else {
       w.classList.remove('hidden');
+      bringToFront(w);
       // reset position
       w.style.left = '50%';
       w.style.top = '50%';

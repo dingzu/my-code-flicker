@@ -41,9 +41,7 @@
   /* ── Desktop ── */
   .desktop {
     width: 100vw; height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: relative;
     /* macOS Sonoma / Sequoia style wallpaper via Unsplash */
     background-image: url('https://images.unsplash.com/photo-1706370956847-3a03b8c8e08d?w=2560&q=85&fit=crop');
     background-size: cover;
@@ -65,7 +63,7 @@
     align-items: center;
     padding: 0 14px;
     gap: 18px;
-    z-index: 999;
+    z-index: 9999;
     user-select: none;
   }
 
@@ -104,7 +102,6 @@
   .window {
     width: min(1120px, calc(100vw - 48px));
     height: min(760px, calc(100vh - 72px));
-    margin-top: 13px;
     display: flex;
     border-radius: 14px;
     overflow: hidden;
@@ -113,8 +110,11 @@
       0 2px 6px rgba(0,0,0,0.14),
       0 16px 40px rgba(0,0,0,0.26),
       0 40px 80px rgba(0,0,0,0.2);
-    position: relative;
-    transition: transform 0.3s cubic-bezier(0.25,1,0.5,1);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, calc(-50% + 13px));
+    transition: opacity 0.22s, transform 0.22s cubic-bezier(0.25,1,0.5,1), box-shadow 0.2s;
     /* Unified window background: clean white-to-soft-blue */
     background:
       radial-gradient(
@@ -129,6 +129,11 @@
         #edf0f4 40%,
         #eaecf2 100%
       );
+  }
+  .window.closing {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 13px)) scale(0.96) translateY(8px);
+    pointer-events: none;
   }
 
   /* ── LEFT SIDEBAR ── */
@@ -581,8 +586,7 @@
     background: rgba(0,0,0,0.2);
     backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
     display: flex; align-items: center; justify-content: center;
-    z-index: 2000;
-    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    z-index: 9000;
   }
   .sheet-overlay:not(.hidden) { opacity: 1; pointer-events: all; }
 
@@ -712,9 +716,7 @@
     border-radius: 12px;
     box-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 20px 60px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.12);
     display: flex; flex-direction: column;
-    z-index: 1500;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.22s, transform 0.22s cubic-bezier(0.25,1,0.5,1);
+    z-index: 8800;
   }
   .doc-window:not(.hidden) { opacity: 1; pointer-events: all; transform: translate(-50%, -50%) scale(1); }
   .doc-window.maximized {
@@ -746,6 +748,48 @@
     font-size: 13px; font-weight: 500; color: #3c3c3c; letter-spacing: -0.01em;
   }
 
+  /* ── Doc left-right layout ── */
+  .doc-layout {
+    display: flex; flex: 1; overflow: hidden;
+  }
+
+  .doc-nav {
+    width: 196px; flex-shrink: 0;
+    background: #f0efed;
+    border-right: 1px solid rgba(0,0,0,0.08);
+    overflow-y: auto; overflow-x: hidden;
+    padding: 12px 0;
+  }
+  .doc-nav::-webkit-scrollbar { width: 4px; }
+  .doc-nav::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+
+  .doc-nav-section {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: #9ca3af;
+    padding: 6px 16px 4px;
+    margin-top: 8px;
+  }
+  .doc-nav-section:first-child { margin-top: 0; }
+
+  .doc-nav-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 16px; font-size: 13px; color: #3c3c3c;
+    cursor: pointer;
+    transition: background 0.1s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    line-height: 1.4;
+  }
+  .doc-nav-item:hover { background: rgba(0,0,0,0.05); }
+  .doc-nav-item.active {
+    background: rgba(59,130,246,0.1);
+    color: #1d4ed8; font-weight: 500;
+  }
+  .doc-nav-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #d1d5db; flex-shrink: 0;
+  }
+  .doc-nav-item.active .doc-nav-dot { background: #3b82f6; }
+
   .doc-body {
     flex: 1; overflow-y: auto; overflow-x: hidden;
     padding: 0 0 40px;
@@ -754,9 +798,13 @@
   .doc-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 3px; }
 
   .doc-content {
-    max-width: 660px; margin: 0 auto;
+    max-width: 640px; margin: 0 auto;
     padding: 48px 32px 0;
   }
+
+  /* Hide non-active doc pages */
+  .doc-page { display: none; }
+  .doc-page.active { display: block; }
 
   .doc-hero-tag {
     font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
@@ -897,6 +945,13 @@
   }
   .dock-img { width: 48px; height: 48px; border-radius: 11px; object-fit: cover; }
 
+  @keyframes dockBounce {
+    0%,100% { transform: translateY(0); }
+    30% { transform: translateY(-14px); }
+    60% { transform: translateY(-6px); }
+  }
+  .dock-icon.dock-bounce { animation: dockBounce 0.4s ease; }
+
   .dock-bg {
     width: 48px; height: 48px; border-radius: 11px;
     display: flex; align-items: center; justify-content: center;
@@ -909,10 +964,13 @@
 
   /* ── Animations ── */
   @keyframes windowIn {
-    from { opacity: 0; transform: scale(0.96) translateY(8px); }
-    to   { opacity: 1; transform: scale(1) translateY(0); }
+    from { opacity: 0; transform: translate(-50%, calc(-50% + 21px)) scale(0.96); }
+    to   { opacity: 1; transform: translate(-50%, calc(-50% + 13px)) scale(1); }
   }
   .window { animation: windowIn 0.32s cubic-bezier(0.25,1,0.5,1) both; }
+  .window.win-open {
+    animation: windowIn 0.28s cubic-bezier(0.25,1,0.5,1) both;
+  }
 
   @media (prefers-reduced-motion: reduce) { .window { animation: none; } }
 </style>
@@ -1264,109 +1322,154 @@
   <div class="doc-titlebar" id="docTitlebar">
     <div class="doc-traffic">
       <div class="doc-tl doc-tl-red" onclick="toggleDoc()"></div>
-      <div class="doc-tl doc-tl-amber"></div>
       <div class="doc-tl doc-tl-green" onclick="toggleDocMax()"></div>
     </div>
-    <span class="doc-title">Myflicker 产品思路 · 融合方案</span>
+    <span class="doc-title" id="docWinTitle">序</span>
     <div style="width:56px"></div>
   </div>
-  <div class="doc-body">
 
-    <div class="doc-content">
-      <div class="doc-hero-tag">PRODUCT BRIEF</div>
-      <h1 class="doc-h1">Myflicker：打通 AI IDE 与 AI 通用助手</h1>
-      <p class="doc-meta">一寒 · 2026 年 Q2 · 设计草稿</p>
+  <!-- Left nav + right content -->
+  <div class="doc-layout">
 
-      <hr class="doc-divider">
-
-      <h2 class="doc-h2">背景</h2>
-      <p class="doc-p">我们有两款成熟产品，能力互补但相互割裂：</p>
-      <div class="doc-compare">
-        <div class="doc-compare-col doc-col-cf">
-          <div class="doc-compare-label">CodeFlicker</div>
-          <ul class="doc-list">
-            <li>绑定本地 workspace（文件夹 + Git）</li>
-            <li>并行多对话，支持启动本地 IDE</li>
-            <li>自研 Agent，深度代码理解</li>
-            <li><strong>短板：</strong>只能本地/云服务，IM 无法用</li>
-          </ul>
-        </div>
-        <div class="doc-compare-col doc-col-mf">
-          <div class="doc-compare-label">Myflicker</div>
-          <ul class="doc-list">
-            <li>IM 内对话、Web、本地客户端均可用</li>
-            <li>访问云端文件系统</li>
-            <li>对话分组，底层 OpenClaw</li>
-            <li><strong>短板：</strong>无工作区感知，无本地执行能力</li>
-          </ul>
-        </div>
+    <!-- Left navigation -->
+    <nav class="doc-nav">
+      <div class="doc-nav-section">文档</div>
+      <div class="doc-nav-item active" onclick="switchDoc('preface')">
+        <span class="doc-nav-dot"></span>序
       </div>
-
-      <h2 class="doc-h2">融合思路</h2>
-      <p class="doc-p">核心原则：<strong>以「项目」为中心</strong>，而非以「模式」为入口。</p>
-
-      <div class="doc-callout">
-        💡 用户不应该在开始工作前先想"我该用 CodeFlicker 还是 Myflicker"——他们只是想完成一件事。
+      <div class="doc-nav-item" onclick="switchDoc('brief')">
+        <span class="doc-nav-dot"></span>产品思路 · 融合方案
       </div>
+    </nav>
 
-      <div class="doc-steps">
-        <div class="doc-step">
-          <div class="doc-step-num">01</div>
-          <div class="doc-step-body">
-            <div class="doc-step-title">统一「项目」概念</div>
-            <p class="doc-step-desc">项目 = 工作上下文容器。可绑定本地工作区（CodeFlicker 模式），也可只用云端（Myflicker 模式）。这个选择在创建项目时做一次，后续对话自动继承，不再重复选。</p>
+    <!-- Right body -->
+    <div class="doc-body">
+
+      <!-- Page: 序 -->
+      <div class="doc-page active" id="doc-preface">
+        <div class="doc-content">
+          <div class="doc-hero-tag">PREFACE</div>
+          <h1 class="doc-h1">序</h1>
+          <p class="doc-meta">一寒 · 2026 年 Q2</p>
+          <hr class="doc-divider">
+          <p class="doc-p">这是一份关于 Myflicker 的产品文档集合。</p>
+          <p class="doc-p">Myflicker 是我们正在探索的下一代 AI 助手形态——它既能在 IDE 里深度协作，也能在任意场景轻量对话。这里记录了设计过程中的思考、决策和待解问题。</p>
+          <div class="doc-callout">
+            📖 从左侧导航选择任意文档，开始阅读。
           </div>
-        </div>
-        <div class="doc-step">
-          <div class="doc-step-num">02</div>
-          <div class="doc-step-body">
-            <div class="doc-step-title">对话框零摩擦启动</div>
-            <p class="doc-step-desc">打开 Myflicker，直接就是输入框。执行位置通过输入框上方的轻量 pill 选择，不做强制引导。独立对话默认云端；在项目内的对话自动继承项目执行环境。</p>
-          </div>
-        </div>
-        <div class="doc-step">
-          <div class="doc-step-num">03</div>
-          <div class="doc-step-body">
-            <div class="doc-step-title">统一 Agent 调度层</div>
-            <p class="doc-step-desc">底层根据执行位置路由：本地工作区 → CodeFlicker Agent（本地运行）；云端 → OpenClaw（云端运行）。UI 层不感知差异，用户只需关注「任务」而非「引擎」。</p>
-          </div>
-        </div>
-        <div class="doc-step">
-          <div class="doc-step-num">04</div>
-          <div class="doc-step-body">
-            <div class="doc-step-title">多端一致体验</div>
-            <p class="doc-step-desc">IM 插件、Web、桌面客户端共享同一个项目/对话数据。桌面端额外支持本地工作区绑定和 IDE 联动，IM/Web 端自动降级为云端模式，数据不丢失。</p>
+          <h2 class="doc-h2">目录</h2>
+          <div class="doc-steps">
+            <div class="doc-step" style="cursor:pointer" onclick="switchDoc('brief')">
+              <div class="doc-step-num">01</div>
+              <div class="doc-step-body">
+                <div class="doc-step-title">产品思路 · 融合方案</div>
+                <p class="doc-step-desc">如何打通 CodeFlicker 与 Myflicker，以「项目」为中心整合两套 Agent 体系。</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <h2 class="doc-h2">信息架构</h2>
-      <div class="doc-ia">
-        <div class="doc-ia-row doc-ia-root">
-          <div class="doc-ia-node doc-ia-node-root">Myflicker</div>
-        </div>
-        <div class="doc-ia-row">
-          <div class="doc-ia-node doc-ia-node-mid">项目<div class="doc-ia-sub">可选绑定工作区</div></div>
-          <div class="doc-ia-node doc-ia-node-mid">独立对话<div class="doc-ia-sub">云端，无项目上下文</div></div>
-        </div>
-        <div class="doc-ia-row">
-          <div class="doc-ia-node doc-ia-node-leaf">本地工作区<div class="doc-ia-sub">CodeFlicker Agent</div></div>
-          <div class="doc-ia-node doc-ia-node-leaf">云端工作区<div class="doc-ia-sub">CodeFlicker Remote Agent</div></div>
-          <div class="doc-ia-node doc-ia-node-leaf">云端<div class="doc-ia-sub">OpenClaw</div></div>
-        </div>
-      </div>
+      <!-- Page: 产品思路 -->
+      <div class="doc-page" id="doc-brief">
+        <div class="doc-content">
+          <div class="doc-hero-tag">PRODUCT BRIEF</div>
+          <h1 class="doc-h1">Myflicker：打通 AI IDE 与 AI 通用助手</h1>
+          <p class="doc-meta">一寒 · 2026 年 Q2 · 设计草稿</p>
 
-      <h2 class="doc-h2">待解决问题</h2>
-      <div class="doc-todo-list">
-        <div class="doc-todo"><span class="doc-todo-tag doc-tag-todo">待定</span> Agent 调度层 API 设计：如何让两套 Agent 共用统一接口？</div>
-        <div class="doc-todo"><span class="doc-todo-tag doc-tag-todo">待定</span> 本地 workspace 的权限模型：多端访问时如何安全隔离？</div>
-        <div class="doc-todo"><span class="doc-todo-tag doc-tag-doing">进行中</span> 桌面端 UI 原型（本文件即产出）</div>
-        <div class="doc-todo"><span class="doc-todo-tag doc-tag-done">完成</span> 新建对话流程设计：以输入为中心 + 轻量 context pill</div>
-        <div class="doc-todo"><span class="doc-todo-tag doc-tag-done">完成</span> 项目概念替换原有「分组」，支持工作区绑定</div>
-      </div>
+          <hr class="doc-divider">
 
-    </div><!-- /doc-content -->
-  </div><!-- /doc-body -->
+          <h2 class="doc-h2">背景</h2>
+          <p class="doc-p">我们有两款成熟产品，能力互补但相互割裂：</p>
+          <div class="doc-compare">
+            <div class="doc-compare-col doc-col-cf">
+              <div class="doc-compare-label">CodeFlicker</div>
+              <ul class="doc-list">
+                <li>绑定本地 workspace（文件夹 + Git）</li>
+                <li>并行多对话，支持启动本地 IDE</li>
+                <li>自研 Agent，深度代码理解</li>
+                <li><strong>短板：</strong>只能本地/云服务，IM 无法用</li>
+              </ul>
+            </div>
+            <div class="doc-compare-col doc-col-mf">
+              <div class="doc-compare-label">Myflicker</div>
+              <ul class="doc-list">
+                <li>IM 内对话、Web、本地客户端均可用</li>
+                <li>访问云端文件系统</li>
+                <li>对话分组，底层 OpenClaw</li>
+                <li><strong>短板：</strong>无工作区感知，无本地执行能力</li>
+              </ul>
+            </div>
+          </div>
+
+          <h2 class="doc-h2">融合思路</h2>
+          <p class="doc-p">核心原则：<strong>以「项目」为中心</strong>，而非以「模式」为入口。</p>
+
+          <div class="doc-callout">
+            💡 用户不应该在开始工作前先想"我该用 CodeFlicker 还是 Myflicker"——他们只是想完成一件事。
+          </div>
+
+          <div class="doc-steps">
+            <div class="doc-step">
+              <div class="doc-step-num">01</div>
+              <div class="doc-step-body">
+                <div class="doc-step-title">统一「项目」概念</div>
+                <p class="doc-step-desc">项目 = 工作上下文容器。可绑定本地工作区（CodeFlicker 模式），也可只用云端（Myflicker 模式）。这个选择在创建项目时做一次，后续对话自动继承，不再重复选。</p>
+              </div>
+            </div>
+            <div class="doc-step">
+              <div class="doc-step-num">02</div>
+              <div class="doc-step-body">
+                <div class="doc-step-title">对话框零摩擦启动</div>
+                <p class="doc-step-desc">打开 Myflicker，直接就是输入框。执行位置通过输入框上方的轻量 pill 选择，不做强制引导。独立对话默认云端；在项目内的对话自动继承项目执行环境。</p>
+              </div>
+            </div>
+            <div class="doc-step">
+              <div class="doc-step-num">03</div>
+              <div class="doc-step-body">
+                <div class="doc-step-title">统一 Agent 调度层</div>
+                <p class="doc-step-desc">底层根据执行位置路由：本地工作区 → CodeFlicker Agent（本地运行）；云端 → OpenClaw（云端运行）。UI 层不感知差异，用户只需关注「任务」而非「引擎」。</p>
+              </div>
+            </div>
+            <div class="doc-step">
+              <div class="doc-step-num">04</div>
+              <div class="doc-step-body">
+                <div class="doc-step-title">多端一致体验</div>
+                <p class="doc-step-desc">IM 插件、Web、桌面客户端共享同一个项目/对话数据。桌面端额外支持本地工作区绑定和 IDE 联动，IM/Web 端自动降级为云端模式，数据不丢失。</p>
+              </div>
+            </div>
+          </div>
+
+          <h2 class="doc-h2">信息架构</h2>
+          <div class="doc-ia">
+            <div class="doc-ia-row doc-ia-root">
+              <div class="doc-ia-node doc-ia-node-root">Myflicker</div>
+            </div>
+            <div class="doc-ia-row">
+              <div class="doc-ia-node doc-ia-node-mid">项目<div class="doc-ia-sub">可选绑定工作区</div></div>
+              <div class="doc-ia-node doc-ia-node-mid">独立对话<div class="doc-ia-sub">云端，无项目上下文</div></div>
+            </div>
+            <div class="doc-ia-row">
+              <div class="doc-ia-node doc-ia-node-leaf">本地工作区<div class="doc-ia-sub">CodeFlicker Agent</div></div>
+              <div class="doc-ia-node doc-ia-node-leaf">云端工作区<div class="doc-ia-sub">CodeFlicker Remote Agent</div></div>
+              <div class="doc-ia-node doc-ia-node-leaf">云端<div class="doc-ia-sub">OpenClaw</div></div>
+            </div>
+          </div>
+
+          <h2 class="doc-h2">待解决问题</h2>
+          <div class="doc-todo-list">
+            <div class="doc-todo"><span class="doc-todo-tag doc-tag-todo">待定</span> Agent 调度层 API 设计：如何让两套 Agent 共用统一接口？</div>
+            <div class="doc-todo"><span class="doc-todo-tag doc-tag-todo">待定</span> 本地 workspace 的权限模型：多端访问时如何安全隔离？</div>
+            <div class="doc-todo"><span class="doc-todo-tag doc-tag-doing">进行中</span> 桌面端 UI 原型（本文件即产出）</div>
+            <div class="doc-todo"><span class="doc-todo-tag doc-tag-done">完成</span> 新建对话流程设计：以输入为中心 + 轻量 context pill</div>
+            <div class="doc-todo"><span class="doc-todo-tag doc-tag-done">完成</span> 项目概念替换原有「分组」，支持工作区绑定</div>
+          </div>
+
+        </div><!-- /doc-content -->
+      </div><!-- /doc-page brief -->
+
+    </div><!-- /doc-body -->
+  </div><!-- /doc-layout -->
 </div><!-- /doc-window -->
 
 <!-- ── New Project Sheet ── -->
@@ -1478,9 +1581,23 @@
       </svg>
     </div>
   </div>
+  <!-- 产品说明 doc -->
+  <div class="dock-icon" id="dockDoc" onclick="dockOpenDoc()">
+    <span class="dock-label">产品说明</span>
+    <div style="width:48px;height:48px;border-radius:11px;background:linear-gradient(145deg,#e8f0fe,#d2e3fc);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;">
+      <svg width="26" height="32" viewBox="0 0 36 44" fill="none">
+        <rect x="0" y="0" width="36" height="44" rx="5" fill="#fff" opacity="0.85"/>
+        <path d="M22 0 L36 14" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+        <path d="M22 0 L22 14 L36 14" fill="rgba(0,0,0,0.08)" stroke="none"/>
+        <line x1="7" y1="20" x2="29" y2="20" stroke="#93b4f0" stroke-width="2" stroke-linecap="round"/>
+        <line x1="7" y1="26" x2="29" y2="26" stroke="#93b4f0" stroke-width="2" stroke-linecap="round"/>
+        <line x1="7" y1="32" x2="20" y2="32" stroke="#93b4f0" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
   <div class="dock-sep"></div>
   <!-- Myflicker active -->
-  <div class="dock-icon active">
+  <div class="dock-icon active" id="dockMyflicker" onclick="dockOpenMyflicker()">
     <span class="dock-label">Myflicker</span>
     <img class="dock-img" src="public/1.jpg" alt="Myflicker">
   </div>
@@ -1512,13 +1629,19 @@
   const tb  = document.getElementById('titlebar');
   let drag = false, ox = 0, oy = 0, tx = 0, ty = 0;
 
+  function resetWinTransform() {
+    win.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + 13px + ${ty}px))`;
+  }
+
   // sidebar top area also drags the main window
   const sidebarTitlebar = document.querySelector('.sidebar-titlebar');
   function startWinDrag(e) {
     if (e.target.classList.contains('tl') || e.target.closest('.sidebar-title-btn')) return;
+    if (win.dataset.max === '1') return;
     drag = true;
     ox = e.clientX - tx; oy = e.clientY - ty;
     win.style.transition = 'none';
+    win.style.animation = 'none';
     document.body.style.userSelect = 'none';
   }
   tb.addEventListener('mousedown', startWinDrag);
@@ -1526,7 +1649,7 @@
   document.addEventListener('mousemove', e => {
     if (!drag) return;
     tx = e.clientX - ox; ty = e.clientY - oy;
-    win.style.transform = `translate(${tx}px,${ty}px)`;
+    win.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + 13px + ${ty}px))`;
   });
   document.addEventListener('mouseup', () => {
     drag = false;
@@ -1534,31 +1657,61 @@
     document.body.style.userSelect = '';
   });
 
-  // Traffic lights
+  // Traffic lights — close
   document.getElementById('tlRed').addEventListener('click', () => {
-    win.style.opacity = '0';
-    win.style.transform = `translate(${tx}px,${ty + 10}px) scale(0.97)`;
+    win.classList.add('closing');
+    document.getElementById('dockMyflicker').classList.remove('active');
     setTimeout(() => {
-      win.style.opacity = '1';
-      win.style.transform = `translate(${tx}px,${ty}px) scale(1)`;
-    }, 500);
+      win.style.display = 'none';
+      win.classList.remove('closing');
+    }, 240);
   });
+
+  // Traffic light — maximize/restore
   document.getElementById('tlGreen').addEventListener('click', () => {
     const isMax = win.dataset.max === '1';
     if (isMax) {
       win.style.width = '';
       win.style.height = '';
       win.style.borderRadius = '';
+      win.style.top = '';
+      win.style.left = '';
       win.dataset.max = '0';
+      resetWinTransform();
     } else {
       win.style.width  = '100vw';
       win.style.height = 'calc(100vh - 26px)';
       win.style.borderRadius = '0';
-      win.style.transform = 'translate(0,0)';
+      win.style.top  = '26px';
+      win.style.left = '0';
+      win.style.transform = 'none';
       tx = 0; ty = 0;
       win.dataset.max = '1';
     }
   });
+
+  // Dock: reopen Myflicker
+  function dockOpenMyflicker() {
+    const dockIcon = document.getElementById('dockMyflicker');
+    if (win.style.display === 'none') {
+      // reopen
+      tx = 0; ty = 0;
+      win.style.display = '';
+      win.style.top = '50%';
+      win.style.left = '50%';
+      win.dataset.max = '0';
+      win.style.width = ''; win.style.height = ''; win.style.borderRadius = '';
+      resetWinTransform();
+      win.classList.remove('win-open');
+      void win.offsetWidth; // force reflow
+      win.classList.add('win-open');
+      dockIcon.classList.add('active');
+    } else {
+      // already open — bounce the icon
+      dockIcon.classList.add('dock-bounce');
+      setTimeout(() => dockIcon.classList.remove('dock-bounce'), 400);
+    }
+  }
 
   // ── Context pill / dropdown ──
   let ctxOpen = false;
@@ -1743,6 +1896,7 @@
 
   function bringToFront(el) {
     topZ += 10;
+    if (topZ > 8900) topZ = 1500; // never exceed sheet/menubar
     el.style.zIndex = topZ;
   }
 
@@ -1755,11 +1909,13 @@
 
   function toggleDoc() {
     const w = docWin;
+    const dockIcon = document.getElementById('dockDoc');
     const isOpen = !w.classList.contains('hidden');
     if (isOpen) {
       w.style.opacity = '0';
       w.style.transform = 'translate(-50%, -50%) scale(0.96)';
       setTimeout(() => w.classList.add('hidden'), 220);
+      dockIcon.classList.remove('active');
     } else {
       w.classList.remove('hidden');
       bringToFront(w);
@@ -1769,11 +1925,43 @@
       w.style.transform = 'translate(-50%, -50%) scale(1)';
       w.style.opacity = '1';
       docX = 0; docY = 0;
+      dockIcon.classList.add('active');
+    }
+  }
+
+  // Dock: open/focus doc window
+  function dockOpenDoc() {
+    const dockIcon = document.getElementById('dockDoc');
+    if (docWin.classList.contains('hidden')) {
+      toggleDoc();
+    } else {
+      // already open — bounce & bring to front
+      bringToFront(docWin);
+      dockIcon.classList.add('dock-bounce');
+      setTimeout(() => dockIcon.classList.remove('dock-bounce'), 400);
     }
   }
 
   function toggleDocMax() {
     document.getElementById('docWindow').classList.toggle('maximized');
+  }
+
+  // ── Doc navigation ──
+  const DOC_TITLES = {
+    'preface': '序',
+    'brief': '产品思路 · 融合方案'
+  };
+  function switchDoc(id) {
+    document.querySelectorAll('.doc-page').forEach(p => p.classList.remove('active'));
+    const page = document.getElementById('doc-' + id);
+    if (page) page.classList.add('active');
+    document.querySelectorAll('.doc-nav-item').forEach(item => {
+      item.classList.toggle('active', item.getAttribute('onclick') === "switchDoc('" + id + "')");
+    });
+    const titleEl = document.getElementById('docWinTitle');
+    if (titleEl) titleEl.textContent = DOC_TITLES[id] || id;
+    const body = document.querySelector('.doc-body');
+    if (body) body.scrollTop = 0;
   }
 
   // Drag for doc window

@@ -8,6 +8,7 @@
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  .hidden { display: none !important; }
 
   :root {
     --sidebar-w: 220px;
@@ -678,6 +679,174 @@
   }
   .sheet-cta:hover { background: #1f2937; }
 
+  /* ── Desktop icons ── */
+  .desktop-icon {
+    position: absolute;
+    top: 48px; left: 20px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    cursor: default; user-select: none; width: 72px;
+  }
+  .desktop-icon-img {
+    width: 56px; height: 68px;
+    display: flex; align-items: center; justify-content: center;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.18));
+    transition: transform 0.15s, filter 0.15s;
+  }
+  .desktop-icon:hover .desktop-icon-img { transform: scale(1.06); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.22)); }
+  .desktop-icon:active .desktop-icon-img { transform: scale(0.96); }
+  .desktop-icon-label {
+    font-size: 11.5px; color: #fff; text-align: center;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    padding: 1px 6px; border-radius: 4px;
+    max-width: 72px; word-break: break-all; line-height: 1.3;
+  }
+  .desktop-icon.selected .desktop-icon-label { background: rgba(0,100,255,0.55); }
+
+  /* ── Doc Window ── */
+  .doc-window {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.96);
+    width: min(820px, 92vw); height: min(620px, 88vh);
+    background: #fafaf8;
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 20px 60px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.12);
+    display: flex; flex-direction: column;
+    z-index: 1500;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.22s, transform 0.22s cubic-bezier(0.25,1,0.5,1);
+  }
+  .doc-window:not(.hidden) { opacity: 1; pointer-events: all; transform: translate(-50%, -50%) scale(1); }
+  .doc-window.maximized {
+    top: 26px; left: 0; bottom: 0; right: 0;
+    width: 100vw; height: calc(100vh - 26px);
+    transform: none !important;
+    border-radius: 0;
+  }
+
+  .doc-titlebar {
+    height: 40px; background: #f0efed;
+    border-radius: 12px 12px 0 0;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 14px; flex-shrink: 0; cursor: default;
+    -webkit-app-region: drag;
+  }
+  .doc-window.maximized .doc-titlebar { border-radius: 0; }
+  .doc-traffic { display: flex; gap: 6px; }
+  .doc-tl {
+    width: 12px; height: 12px; border-radius: 50%; cursor: pointer;
+    transition: filter 0.1s;
+  }
+  .doc-tl:hover { filter: brightness(0.85); }
+  .doc-tl-red   { background: #ff5f57; }
+  .doc-tl-amber { background: #febc2e; }
+  .doc-tl-green { background: #28c840; }
+  .doc-title {
+    font-size: 13px; font-weight: 500; color: #3c3c3c; letter-spacing: -0.01em;
+  }
+
+  .doc-body {
+    flex: 1; overflow-y: auto; overflow-x: hidden;
+    padding: 0 0 40px;
+  }
+  .doc-body::-webkit-scrollbar { width: 6px; }
+  .doc-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 3px; }
+
+  .doc-content {
+    max-width: 660px; margin: 0 auto;
+    padding: 48px 32px 0;
+  }
+
+  .doc-hero-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+    color: #3b82f6; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .doc-h1 {
+    font-size: 26px; font-weight: 700; color: #111;
+    letter-spacing: -0.03em; line-height: 1.25; margin: 0 0 10px;
+  }
+  .doc-meta { font-size: 12.5px; color: #aaa; margin: 0 0 28px; }
+  .doc-divider { border: none; border-top: 1px solid #e5e5e3; margin: 0 0 28px; }
+  .doc-h2 {
+    font-size: 15px; font-weight: 600; color: #1a1a1a;
+    letter-spacing: -0.02em; margin: 32px 0 10px;
+  }
+  .doc-p { font-size: 14px; line-height: 1.7; color: #374151; margin: 0 0 14px; }
+
+  .doc-callout {
+    background: #eff6ff; border-left: 3px solid #3b82f6;
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px; font-size: 13.5px; color: #1e40af;
+    line-height: 1.6; margin: 0 0 20px;
+  }
+
+  .doc-compare {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;
+  }
+  .doc-compare-col {
+    border-radius: 10px; padding: 14px 16px;
+    border: 1.5px solid rgba(0,0,0,0.07);
+  }
+  .doc-col-cf { background: #f0fdf4; border-color: rgba(22,163,74,0.2); }
+  .doc-col-mf { background: #eff6ff; border-color: rgba(59,130,246,0.2); }
+  .doc-compare-label {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  .doc-col-cf .doc-compare-label { color: #15803d; }
+  .doc-col-mf .doc-compare-label { color: #1d4ed8; }
+  .doc-list { margin: 0; padding-left: 16px; font-size: 13px; color: #374151; line-height: 1.8; }
+
+  .doc-steps { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+  .doc-step {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 14px 16px; border-radius: 10px; background: #fff;
+    border: 1px solid rgba(0,0,0,0.07);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .doc-step-num {
+    font-size: 11px; font-weight: 800; letter-spacing: 0.04em;
+    color: #9ca3af; padding-top: 1px; flex-shrink: 0; min-width: 20px;
+  }
+  .doc-step-title { font-size: 14px; font-weight: 600; color: #111; margin-bottom: 5px; }
+  .doc-step-desc { font-size: 13px; line-height: 1.65; color: #4b5563; margin: 0; }
+
+  .doc-ia {
+    display: flex; flex-direction: column; align-items: center; gap: 0;
+    margin: 12px 0 20px; padding: 20px;
+    background: #fff; border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.07);
+  }
+  .doc-ia-row {
+    display: flex; gap: 12px; justify-content: center;
+    position: relative; padding: 0 0 0;
+  }
+  .doc-ia-row + .doc-ia-row { margin-top: 10px; }
+  .doc-ia-node {
+    padding: 8px 14px; border-radius: 8px;
+    font-size: 12.5px; font-weight: 500; color: #374151;
+    border: 1.5px solid rgba(0,0,0,0.1);
+    text-align: center; line-height: 1.3;
+  }
+  .doc-ia-node-root { background: #1a1a1a; color: #fff; border-color: #1a1a1a; font-weight: 700; }
+  .doc-ia-node-mid  { background: #f3f4f6; min-width: 130px; }
+  .doc-ia-node-leaf { background: #fafafa; font-size: 11.5px; min-width: 110px; }
+  .doc-ia-sub { font-size: 10.5px; color: #9ca3af; margin-top: 3px; font-weight: 400; }
+
+  .doc-todo-list { display: flex; flex-direction: column; gap: 8px; }
+  .doc-todo {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 13.5px; color: #374151; line-height: 1.5; padding: 2px 0;
+  }
+  .doc-todo-tag {
+    font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 5px;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .doc-tag-todo  { background: #fef3c7; color: #92400e; }
+  .doc-tag-doing { background: #dbeafe; color: #1e40af; }
+  .doc-tag-done  { background: #dcfce7; color: #166534; }
+
   /* ── Dock ── */
   .dock {
     position: fixed;
@@ -972,7 +1141,7 @@
 
           <!-- Context bar: where to run -->
           <div class="context-bar">
-            <button class="ctx-pill ctx-pill-active" id="ctxBtn" onclick="toggleCtxMenu()">
+            <button class="ctx-pill ctx-pill-ws" id="ctxBtn" onclick="toggleCtxMenu(event)">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
               </svg>
@@ -1066,7 +1235,139 @@
     </div><!-- /content-area -->
 
   </div><!-- /window -->
+  <!-- Desktop file icon: 产品说明 -->
+  <div class="desktop-icon" id="docIcon" ondblclick="toggleDoc()" title="双击打开">
+    <div class="desktop-icon-img">
+      <svg width="36" height="44" viewBox="0 0 36 44" fill="none">
+        <rect x="0" y="0" width="36" height="44" rx="5" fill="#fff"/>
+        <rect x="0" y="0" width="36" height="44" rx="5" fill="url(#pg)" opacity="0.9"/>
+        <path d="M22 0 L36 14" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+        <path d="M22 0 L22 14 L36 14" fill="rgba(0,0,0,0.06)" stroke="none"/>
+        <line x1="7" y1="20" x2="29" y2="20" stroke="#bbb" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="7" y1="25" x2="29" y2="25" stroke="#bbb" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="7" y1="30" x2="22" y2="30" stroke="#bbb" stroke-width="1.5" stroke-linecap="round"/>
+        <defs>
+          <linearGradient id="pg" x1="0" y1="0" x2="36" y2="44" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#e8f0fe"/>
+            <stop offset="1" stop-color="#d2e3fc"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <div class="desktop-icon-label">产品说明.doc</div>
+  </div>
+
 </div><!-- /desktop -->
+
+<!-- ── Doc Window ── -->
+<div class="doc-window hidden" id="docWindow">
+  <div class="doc-titlebar" id="docTitlebar">
+    <div class="doc-traffic">
+      <div class="doc-tl doc-tl-red" onclick="toggleDoc()"></div>
+      <div class="doc-tl doc-tl-amber"></div>
+      <div class="doc-tl doc-tl-green" onclick="toggleDocMax()"></div>
+    </div>
+    <span class="doc-title">Myflicker 产品思路 · 融合方案</span>
+    <div style="width:56px"></div>
+  </div>
+  <div class="doc-body">
+
+    <div class="doc-content">
+      <div class="doc-hero-tag">PRODUCT BRIEF</div>
+      <h1 class="doc-h1">Myflicker：打通 AI IDE 与 AI 通用助手</h1>
+      <p class="doc-meta">一寒 · 2026 年 Q2 · 设计草稿</p>
+
+      <hr class="doc-divider">
+
+      <h2 class="doc-h2">背景</h2>
+      <p class="doc-p">我们有两款成熟产品，能力互补但相互割裂：</p>
+      <div class="doc-compare">
+        <div class="doc-compare-col doc-col-cf">
+          <div class="doc-compare-label">CodeFlicker</div>
+          <ul class="doc-list">
+            <li>绑定本地 workspace（文件夹 + Git）</li>
+            <li>并行多对话，支持启动本地 IDE</li>
+            <li>自研 Agent，深度代码理解</li>
+            <li><strong>短板：</strong>只能本地/云服务，IM 无法用</li>
+          </ul>
+        </div>
+        <div class="doc-compare-col doc-col-mf">
+          <div class="doc-compare-label">Myflicker</div>
+          <ul class="doc-list">
+            <li>IM 内对话、Web、本地客户端均可用</li>
+            <li>访问云端文件系统</li>
+            <li>对话分组，底层 OpenClaw</li>
+            <li><strong>短板：</strong>无工作区感知，无本地执行能力</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 class="doc-h2">融合思路</h2>
+      <p class="doc-p">核心原则：<strong>以「项目」为中心</strong>，而非以「模式」为入口。</p>
+
+      <div class="doc-callout">
+        💡 用户不应该在开始工作前先想"我该用 CodeFlicker 还是 Myflicker"——他们只是想完成一件事。
+      </div>
+
+      <div class="doc-steps">
+        <div class="doc-step">
+          <div class="doc-step-num">01</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">统一「项目」概念</div>
+            <p class="doc-step-desc">项目 = 工作上下文容器。可绑定本地工作区（CodeFlicker 模式），也可只用云端（Myflicker 模式）。这个选择在创建项目时做一次，后续对话自动继承，不再重复选。</p>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">02</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">对话框零摩擦启动</div>
+            <p class="doc-step-desc">打开 Myflicker，直接就是输入框。执行位置通过输入框上方的轻量 pill 选择，不做强制引导。独立对话默认云端；在项目内的对话自动继承项目执行环境。</p>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">03</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">统一 Agent 调度层</div>
+            <p class="doc-step-desc">底层根据执行位置路由：本地工作区 → CodeFlicker Agent（本地运行）；云端 → OpenClaw（云端运行）。UI 层不感知差异，用户只需关注「任务」而非「引擎」。</p>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">04</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">多端一致体验</div>
+            <p class="doc-step-desc">IM 插件、Web、桌面客户端共享同一个项目/对话数据。桌面端额外支持本地工作区绑定和 IDE 联动，IM/Web 端自动降级为云端模式，数据不丢失。</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="doc-h2">信息架构</h2>
+      <div class="doc-ia">
+        <div class="doc-ia-row doc-ia-root">
+          <div class="doc-ia-node doc-ia-node-root">Myflicker</div>
+        </div>
+        <div class="doc-ia-row">
+          <div class="doc-ia-node doc-ia-node-mid">项目<div class="doc-ia-sub">可选绑定工作区</div></div>
+          <div class="doc-ia-node doc-ia-node-mid">独立对话<div class="doc-ia-sub">云端，无项目上下文</div></div>
+        </div>
+        <div class="doc-ia-row">
+          <div class="doc-ia-node doc-ia-node-leaf">本地工作区<div class="doc-ia-sub">CodeFlicker Agent</div></div>
+          <div class="doc-ia-node doc-ia-node-leaf">云端<div class="doc-ia-sub">OpenClaw</div></div>
+          <div class="doc-ia-node doc-ia-node-leaf">云端<div class="doc-ia-sub">OpenClaw</div></div>
+        </div>
+      </div>
+
+      <h2 class="doc-h2">待解决问题</h2>
+      <div class="doc-todo-list">
+        <div class="doc-todo"><span class="doc-todo-tag doc-tag-todo">待定</span> Agent 调度层 API 设计：如何让两套 Agent 共用统一接口？</div>
+        <div class="doc-todo"><span class="doc-todo-tag doc-tag-todo">待定</span> 本地 workspace 的权限模型：多端访问时如何安全隔离？</div>
+        <div class="doc-todo"><span class="doc-todo-tag doc-tag-doing">进行中</span> 桌面端 UI 原型（本文件即产出）</div>
+        <div class="doc-todo"><span class="doc-todo-tag doc-tag-done">完成</span> 新建对话流程设计：以输入为中心 + 轻量 context pill</div>
+        <div class="doc-todo"><span class="doc-todo-tag doc-tag-done">完成</span> 项目概念替换原有「分组」，支持工作区绑定</div>
+      </div>
+
+    </div><!-- /doc-content -->
+  </div><!-- /doc-body -->
+</div><!-- /doc-window -->
 
 <!-- ── New Project Sheet ── -->
 <div class="sheet-overlay hidden" id="sheetOverlay" onclick="closeSheet(event)">
@@ -1259,7 +1560,8 @@
   let ctxOpen = false;
   let currentCtxType = 'ws'; // 'ws' | 'cloud' | 'cloud-free'
 
-  function toggleCtxMenu() {
+  function toggleCtxMenu(e) {
+    if (e) e.stopPropagation();
     ctxOpen = !ctxOpen;
     document.getElementById('ctxMenu').classList.toggle('hidden', !ctxOpen);
   }
@@ -1429,6 +1731,59 @@
     toggleProject(projId);
     openNewChat();
   }
+
+  // ── Doc Window ──
+  let docDragging = false, docDx = 0, docDy = 0, docX = 0, docY = 0;
+
+  function toggleDoc() {
+    const w = document.getElementById('docWindow');
+    const isOpen = !w.classList.contains('hidden');
+    if (isOpen) {
+      w.style.opacity = '0';
+      w.style.transform = 'translate(-50%, -50%) scale(0.96)';
+      setTimeout(() => w.classList.add('hidden'), 220);
+    } else {
+      w.classList.remove('hidden');
+      // reset position
+      w.style.left = '50%';
+      w.style.top = '50%';
+      w.style.transform = 'translate(-50%, -50%) scale(1)';
+      w.style.opacity = '1';
+      docX = 0; docY = 0;
+    }
+  }
+
+  function toggleDocMax() {
+    document.getElementById('docWindow').classList.toggle('maximized');
+  }
+
+  // Drag for doc window
+  const docTitlebar = document.getElementById('docTitlebar');
+  docTitlebar.addEventListener('mousedown', e => {
+    if (e.target.closest('.doc-tl')) return;
+    const dw = document.getElementById('docWindow');
+    if (dw.classList.contains('maximized')) return;
+    docDragging = true;
+    const rect = dw.getBoundingClientRect();
+    docDx = e.clientX - rect.left;
+    docDy = e.clientY - rect.top;
+    dw.style.transform = 'none';
+    dw.style.left = rect.left + 'px';
+    dw.style.top  = rect.top  + 'px';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!docDragging) return;
+    const dw = document.getElementById('docWindow');
+    dw.style.left = (e.clientX - docDx) + 'px';
+    dw.style.top  = (e.clientY - docDy) + 'px';
+  });
+  document.addEventListener('mouseup', () => { docDragging = false; });
+
+  // Double-click icon
+  document.getElementById('docIcon').addEventListener('click', () => {
+    document.getElementById('docIcon').classList.toggle('selected');
+  });
 </script>
 </body>
 </html>

@@ -1,0 +1,1 @@
+cd /Users/dingzu/Documents/my-codeflicker && python3 -m http.server 3000

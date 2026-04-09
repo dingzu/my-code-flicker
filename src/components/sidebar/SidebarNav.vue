@@ -28,7 +28,7 @@ const navItems = [
   },
   {
     id: 'schedule',
-    label: '定时任务',
+    label: '任务管理',
     icon: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
   },
   {

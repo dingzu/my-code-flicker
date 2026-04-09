@@ -22,6 +22,14 @@
           </div>
           <div class="doc-toc-arrow">→</div>
         </div>
+        <div class="doc-toc-item" @click="docStore.switchPage('arch')">
+          <div class="doc-toc-num">02</div>
+          <div class="doc-toc-body">
+            <div class="doc-toc-title">融合方案 · 技术文档</div>
+            <div class="doc-toc-desc">系统架构、模块设计、接口协议、数据模型、部署方案</div>
+          </div>
+          <div class="doc-toc-arrow">→</div>
+        </div>
       </div>
     </template>
 
@@ -367,6 +375,196 @@
       </div>
 
     </template>
+
+    <!-- ── 融合方案 · 技术文档 ── -->
+    <template v-if="pageId === 'arch'">
+      <div class="doc-hero-tag">TECHNICAL SPEC</div>
+      <h1 class="doc-h1">融合方案 · 技术文档</h1>
+      <p class="doc-meta">一寒 · 2026 年 Q2 · 草稿</p>
+      <hr class="doc-divider">
+
+      <div class="doc-problem">
+        <div class="doc-problem-label">设计目标</div>
+        <p class="doc-problem-text">在不破坏 CodeFlicker 和 Myflicker 各自技术栈的前提下，通过统一的「项目层」抽象，让两套 Agent 体系（CF 自研 Agent / Gateway + OpenClaw）在同一产品界面内协同工作。</p>
+      </div>
+
+      <h2 class="doc-h2">01 &nbsp; 系统架构总览</h2>
+      <div class="arch-diagram">
+        <div class="arch-layer">
+          <div class="arch-layer-label">客户端层</div>
+          <div class="arch-layer-nodes">
+            <div class="arch-node arch-node-client">桌面端<div class="arch-node-sub">Electron / Web</div></div>
+            <div class="arch-node arch-node-client">IM 插件<div class="arch-node-sub">KIM Plugin</div></div>
+            <div class="arch-node arch-node-client">Web 端<div class="arch-node-sub">Browser</div></div>
+          </div>
+        </div>
+        <div class="arch-arrow-row">↓ &nbsp; 统一 UI 层（项目 / Session / Outputs）&nbsp; ↓</div>
+        <div class="arch-layer arch-layer-highlight">
+          <div class="arch-layer-label">项目层（新增）</div>
+          <div class="arch-layer-nodes">
+            <div class="arch-node arch-node-project">Project Service<div class="arch-node-sub">项目 CRUD · Assets · Outputs</div></div>
+            <div class="arch-node arch-node-project">Session Orchestrator<div class="arch-node-sub">Duet 并行调度 · Agent 路由</div></div>
+          </div>
+        </div>
+        <div class="arch-arrow-row">↓ &nbsp; Session 级 Agent 路由 &nbsp; ↓</div>
+        <div class="arch-layer">
+          <div class="arch-layer-label">Agent 层</div>
+          <div class="arch-layer-nodes">
+            <div class="arch-node arch-node-cf">CF Agent<div class="arch-node-sub">本地 IDE / 云端 IDE</div></div>
+            <div class="arch-node arch-node-gw">Gateway Agent<div class="arch-node-sub">本地 Node / 云端</div></div>
+          </div>
+        </div>
+        <div class="arch-arrow-row">↓ &nbsp; 执行层 &nbsp; ↓</div>
+        <div class="arch-layer">
+          <div class="arch-layer-label">执行层</div>
+          <div class="arch-layer-nodes">
+            <div class="arch-node arch-node-exec">本地 Workspace<div class="arch-node-sub">文件系统 · Git</div></div>
+            <div class="arch-node arch-node-exec">云端 IDE<div class="arch-node-sub">Container</div></div>
+            <div class="arch-node arch-node-exec">云端文件系统<div class="arch-node-sub">OpenClaw FS</div></div>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="doc-h2">02 &nbsp; 核心模块设计</h2>
+      <div class="decision-list">
+        <div class="decision" v-for="m in modules" :key="m.name">
+          <div class="decision-num" style="min-width:80px;font-size:10px">{{ m.name }}</div>
+          <div class="decision-body">
+            <div class="decision-title">{{ m.title }}</div>
+            <div class="decision-desc">{{ m.desc }}</div>
+            <div class="arch-props" v-if="m.props">
+              <div class="arch-prop" v-for="p in m.props" :key="p.k">
+                <span class="arch-prop-k">{{ p.k }}</span>
+                <span class="arch-prop-v">{{ p.v }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="doc-h2">03 &nbsp; Session 统一接口协议</h2>
+      <p class="doc-p">CF Agent 和 Gateway Agent 共用同一套 Session 协议，Project 层不感知底层实现差异。</p>
+      <div class="code-block">
+        <div class="code-block-header">SessionConfig · TypeScript Interface</div>
+        <pre class="code-pre">interface SessionConfig {
+  sessionId:   string
+  projectId:   string
+  agentType:   'cf-agent' | 'gateway-agent'   // session 级路由
+  agentTarget: {
+    // CF Agent
+    workspacePath?: string   // 本地工作区路径
+    cloudIdeUrl?:   string   // 云端 IDE 地址
+    // Gateway Agent
+    gatewayMode?:   'local-node' | 'cloud'
+    focusScope?:    string[] // 上下文聚焦圈：项目关联资产路径列表
+  }
+  context: {
+    projectAssets:  Asset[]  // 自动注入的项目资产
+    outputsRef:     string   // /outputs/ 目录引用，供跨 session 读取
+  }
+}</pre>
+      </div>
+      <div class="code-block">
+        <div class="code-block-header">OutputRecord · 产出归档结构</div>
+        <pre class="code-pre">interface OutputRecord {
+  sessionId:   string
+  projectId:   string
+  type:        'file-diff' | 'new-file' | 'report'
+  content:     string       // diff / 文件内容 / 报告 markdown
+  summary:     string       // Agent 自动提炼的一句话摘要
+  createdAt:   number
+  agentType:   'cf-agent' | 'gateway-agent'
+}</pre>
+      </div>
+
+      <h2 class="doc-h2">04 &nbsp; 核心数据模型</h2>
+      <div class="data-model">
+        <div class="dm-entity" v-for="e in entities" :key="e.name">
+          <div class="dm-entity-header">
+            <span class="dm-entity-name">{{ e.name }}</span>
+            <span class="dm-entity-desc">{{ e.desc }}</span>
+          </div>
+          <div class="dm-fields">
+            <div class="dm-field" v-for="f in e.fields" :key="f.name">
+              <span class="dm-field-name">{{ f.name }}</span>
+              <span class="dm-field-type">{{ f.type }}</span>
+              <span class="dm-field-note">{{ f.note }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="doc-h2">05 &nbsp; Agent 路由逻辑</h2>
+      <p class="doc-p">路由在 Session 启动时执行，优先使用用户手动指定，否则走智能推断。</p>
+      <div class="code-block">
+        <div class="code-block-header">路由决策伪代码</div>
+        <pre class="code-pre">function resolveAgent(userInput, project):
+  // 1. 手动指定优先
+  if userInput.agentOverride:
+    return userInput.agentOverride
+
+  // 2. 智能推断
+  signals = extractSignals(userInput.firstMessage)
+
+  if signals.hasLocalFileOp       → 'cf-agent'         // "修改这个文件"
+  if signals.hasCodeRefactor      → 'cf-agent'         // "重构这段代码"
+  if signals.hasIdeOperation      → 'cf-agent'         // "启动调试"
+  if signals.hasWebSearch         → 'gateway-agent'    // "帮我搜索"
+  if signals.hasDocAnalysis       → 'gateway-agent'    // "分析这份文档"
+  if signals.hasCrossProjectRef   → 'gateway-agent'    // "参考另一个项目"
+
+  // 3. 默认
+  if project.defaultAgent: return project.defaultAgent
+  return 'gateway-agent'  // 全局默认</pre>
+      </div>
+
+      <h2 class="doc-h2">06 &nbsp; 上下文注入策略</h2>
+      <div class="context-inject">
+        <div class="ci-col ci-col-cf">
+          <div class="ci-label">CF Agent · 物理隔离</div>
+          <ul class="ci-list">
+            <li>MCP rootPath = workspace 绑定路径</li>
+            <li>文件访问边界 = rootPath 内</li>
+            <li>跨项目需切换 workspace</li>
+            <li>自动注入 Git 状态、最近变更</li>
+          </ul>
+        </div>
+        <div class="ci-col ci-col-gw">
+          <div class="ci-label">Gateway Agent · 上下文聚焦圈</div>
+          <ul class="ci-list">
+            <li>System Prompt 注入项目 focusScope 资产列表</li>
+            <li>优先检索 focusScope 内的文件</li>
+            <li>用户指令触发时可扩展到全局</li>
+            <li>跨项目引用：直接读取其他项目 /outputs/</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 class="doc-h2">07 &nbsp; 部署方案</h2>
+      <div class="deploy-table">
+        <div class="dt-header">
+          <span>服务</span><span>部署形态</span><span>依赖</span>
+        </div>
+        <div class="dt-row" v-for="svc in services" :key="svc.name">
+          <span class="dt-name">{{ svc.name }}</span>
+          <span class="dt-deploy">{{ svc.deploy }}</span>
+          <span class="dt-deps">{{ svc.deps }}</span>
+        </div>
+      </div>
+
+      <h2 class="doc-h2">08 &nbsp; 待确认技术决策</h2>
+      <div class="decision-log">
+        <div class="dl-section">
+          <div class="dl-items">
+            <div class="dl-item dl-item-open" v-for="t in techTodos" :key="t">
+              <span class="dl-open">?</span>{{ t }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </template>
+
   </div>
 </template>
 
@@ -447,6 +645,108 @@ const todoOpen = [
   '独立对话升级为项目的交互流程：触发时机、迁移逻辑、Assets 归属',
   'Duet 并行 session 的 UI 表达：多标签？分屏？如何感知并行状态？',
   '本地 workspace 权限模型：多端访问时如何安全隔离？',
+]
+const techTodos = [
+  'Session Orchestrator 的高可用方案：展平还是哨兵模式？',
+  '/outputs/ 存储层方案：云端对象存储 vs 文件服务 vs 数据库？',
+  'CF Agent 和 Gateway Agent 的认证统一：如何共用同一套用户身份体系？',
+  '本地 Workspace 多端访问与权限隔离方案',
+  'Gateway 本地 Node 的安装/升级机制设计',
+]
+
+const modules = [
+  {
+    name: 'Project Service',
+    title: '项目管理服务',
+    desc: '负责项目的 CRUD、Assets 管理、Outputs 归档。是项目层的核心服务，CF Agent 和 Gateway Agent 均通过此服务读写项目数据。',
+    props: [
+      { k: '接口', v: 'REST + WebSocket（实时通知 Outputs 更新）' },
+      { k: '存储', v: 'Projects / Sessions / Outputs 三张表' },
+      { k: '归档触发', v: 'Agent 完成一个 checkpoint 后推送 OutputRecord' },
+    ]
+  },
+  {
+    name: 'Session Orchestrator',
+    title: 'Duet 并行调度器',
+    desc: '管理同一项目下多个并行 Session 的生命周期，执行 Agent 路由决策，分发任务给对应的 Agent Runtime。',
+    props: [
+      { k: 'Agent 路由', v: '手动指定 > 智能推断 > 项目默认 > 全局默认' },
+      { k: '并行上限', v: '单项目最多 N 个并发 Session（待定）' },
+      { k: '隔离保证', v: 'Session 间上下文完全隔离，仅通过 /outputs/ 异步共享' },
+    ]
+  },
+  {
+    name: 'CF Agent Runtime',
+    title: 'CodeFlicker Agent 运行时',
+    desc: '原有 CF 自研 Agent 的封装层，暴露统一 Session 协议接口。支持本地 IDE 和云端 IDE 两种执行模式。',
+    props: [
+      { k: '上下文边界', v: '物理隔离，MCP rootPath = workspace 路径' },
+      { k: '产出归档', v: '文件变更转为 file-diff 类型 OutputRecord' },
+      { k: '接入方式', v: '实现 IAgentRuntime 统一接口' },
+    ]
+  },
+  {
+    name: 'Gateway Runtime',
+    title: 'Gateway Agent 运行时',
+    desc: '原有 Gateway + OpenClaw 的封装层，暴露统一 Session 协议接口。支持本地 Node 和云端两种部署模式。',
+    props: [
+      { k: '上下文边界', v: '上下文聚焦圈，focusScope 注入 System Prompt' },
+      { k: '产出归档', v: '生成文档/报告转为 new-file / report 类型 OutputRecord' },
+      { k: '接入方式', v: '实现 IAgentRuntime 统一接口' },
+    ]
+  },
+]
+
+const entities = [
+  {
+    name: 'Project',
+    desc: '项目',
+    fields: [
+      { name: 'id', type: 'string', note: 'UUID' },
+      { name: 'name', type: 'string', note: '项目名称' },
+      { name: 'ownerId', type: 'string', note: '创建者' },
+      { name: 'defaultAgent', type: 'enum', note: 'cf-agent | gateway-agent | auto' },
+      { name: 'workspacePath', type: 'string?', note: '本地 workspace 绑定路径（可选）' },
+      { name: 'focusScope', type: 'string[]', note: 'Gateway 上下文聚焦圈资产列表' },
+      { name: 'templateId', type: 'string?', note: '创建时使用的模板' },
+      { name: 'createdAt', type: 'number', note: 'Unix timestamp' },
+    ]
+  },
+  {
+    name: 'Session',
+    desc: '对话',
+    fields: [
+      { name: 'id', type: 'string', note: 'UUID' },
+      { name: 'projectId', type: 'string?', note: '所属项目（独立对话为 null）' },
+      { name: 'agentType', type: 'enum', note: 'cf-agent | gateway-agent' },
+      { name: 'agentTarget', type: 'object', note: '路由参数（workspacePath / gatewayMode）' },
+      { name: 'status', type: 'enum', note: 'idle | running | done | error' },
+      { name: 'createdAt', type: 'number', note: 'Unix timestamp' },
+    ]
+  },
+  {
+    name: 'OutputRecord',
+    desc: '产出归档',
+    fields: [
+      { name: 'id', type: 'string', note: 'UUID' },
+      { name: 'sessionId', type: 'string', note: '来源 Session' },
+      { name: 'projectId', type: 'string', note: '所属项目' },
+      { name: 'type', type: 'enum', note: 'file-diff | new-file | report' },
+      { name: 'content', type: 'string', note: 'diff / 文件内容 / markdown' },
+      { name: 'summary', type: 'string', note: 'Agent 自动提炼的一句话摘要' },
+      { name: 'agentType', type: 'enum', note: 'cf-agent | gateway-agent' },
+      { name: 'createdAt', type: 'number', note: 'Unix timestamp' },
+    ]
+  },
+]
+
+const services = [
+  { name: 'Myflicker Web/桌面端', deploy: 'frontend-cloud（静态）', deps: 'Project Service API' },
+  { name: 'Project Service', deploy: 'K8s · Node.js', deps: 'DB, Auth Service' },
+  { name: 'Session Orchestrator', deploy: 'K8s · Node.js', deps: 'Project Service, Agent Runtimes' },
+  { name: 'CF Agent Runtime', deploy: '本地进程 / 云端 Container', deps: 'CF IDE, MCP' },
+  { name: 'Gateway Runtime (云端)', deploy: 'K8s · Node.js', deps: 'OpenClaw, 云端文件系统' },
+  { name: 'Gateway Runtime (本地)', deploy: '用户本地 Node 进程', deps: 'OpenClaw, 本地文件系统' },
 ]
 </script>
 
@@ -729,4 +1029,74 @@ code {
 }
 .dl-item-doing { color: #4338ca; }
 .dl-item-open  { color: #6b7280; }
+
+/* ── 架构图 ── */
+.arch-diagram { display: flex; flex-direction: column; gap: 0; margin-bottom: 20px; }
+.arch-layer {
+  background: #fff; border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 10px; padding: 14px 16px;
+}
+.arch-layer-highlight { background: #f5f3ff; border-color: rgba(99,102,241,0.2); }
+.arch-layer-label { font-size: 10px; font-weight: 700; color: #9ca3af; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+.arch-layer-nodes { display: flex; gap: 10px; flex-wrap: wrap; }
+.arch-node { padding: 8px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600; text-align: center; border: 1px solid rgba(0,0,0,0.08); }
+.arch-node-sub { font-size: 10.5px; font-weight: 400; color: #9ca3af; margin-top: 2px; }
+.arch-node-client  { background: #f9fafb; color: #374151; }
+.arch-node-project { background: #ede9fe; color: #5b21b6; border-color: rgba(139,92,246,0.2); }
+.arch-node-cf      { background: #dcfce7; color: #15803d; border-color: rgba(22,163,74,0.2); }
+.arch-node-gw      { background: #e0e7ff; color: #4338ca; border-color: rgba(99,102,241,0.2); }
+.arch-node-exec    { background: #fafafa; color: #6b7280; }
+.arch-arrow-row {
+  text-align: center; font-size: 11.5px; color: #d1d5db;
+  padding: 6px 0; letter-spacing: 0.02em;
+}
+
+/* ── arch props ── */
+.arch-props { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+.arch-prop { display: flex; gap: 8px; font-size: 12.5px; }
+.arch-prop-k { color: #9ca3af; flex-shrink: 0; min-width: 52px; }
+.arch-prop-v { color: #374151; }
+
+/* ── 代码块 ── */
+.code-block { margin-bottom: 16px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(0,0,0,0.07); }
+.code-block-header { font-size: 11px; font-weight: 600; color: #6b7280; background: #f3f4f6; padding: 8px 14px; border-bottom: 1px solid rgba(0,0,0,0.06); letter-spacing: 0.03em; }
+.code-pre {
+  margin: 0; padding: 14px 16px;
+  font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+  font-size: 12px; line-height: 1.7; color: #1f2937;
+  background: #fff; overflow-x: auto;
+  white-space: pre;
+}
+
+/* ── 数据模型 ── */
+.data-model { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+.dm-entity { border: 1px solid rgba(0,0,0,0.07); border-radius: 10px; overflow: hidden; }
+.dm-entity-header { display: flex; align-items: baseline; gap: 10px; padding: 10px 14px; background: #f9fafb; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.dm-entity-name { font-size: 13px; font-weight: 700; color: #111; font-family: 'SF Mono', monospace; }
+.dm-entity-desc { font-size: 11.5px; color: #9ca3af; }
+.dm-fields { display: flex; flex-direction: column; }
+.dm-field { display: grid; grid-template-columns: 140px 120px 1fr; gap: 8px; padding: 7px 14px; font-size: 12px; border-bottom: 1px solid rgba(0,0,0,0.04); align-items: baseline; }
+.dm-field:last-child { border-bottom: none; }
+.dm-field-name { font-family: 'SF Mono', monospace; color: #374151; font-weight: 500; }
+.dm-field-type { color: #6366f1; font-family: 'SF Mono', monospace; font-size: 11px; }
+.dm-field-note { color: #9ca3af; font-size: 11.5px; }
+
+/* ── 上下文注入 ── */
+.context-inject { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.ci-col { border-radius: 10px; padding: 16px; border: 1.5px solid rgba(0,0,0,0.07); }
+.ci-col-cf { background: #f0fdf4; border-color: rgba(22,163,74,0.2); }
+.ci-col-gw { background: #f0f4ff; border-color: rgba(99,102,241,0.2); }
+.ci-label { font-size: 11px; font-weight: 700; margin-bottom: 10px; }
+.ci-col-cf .ci-label { color: #15803d; }
+.ci-col-gw .ci-label { color: #4338ca; }
+.ci-list { margin: 0; padding-left: 16px; font-size: 12.5px; color: #374151; line-height: 1.9; }
+
+/* ── 部署表格 ── */
+.deploy-table { border: 1px solid rgba(0,0,0,0.07); border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+.dt-header { display: grid; grid-template-columns: 1.6fr 1.2fr 1.4fr; gap: 8px; padding: 8px 14px; background: #f3f4f6; font-size: 10.5px; font-weight: 700; color: #9ca3af; letter-spacing: 0.06em; text-transform: uppercase; }
+.dt-row { display: grid; grid-template-columns: 1.6fr 1.2fr 1.4fr; gap: 8px; padding: 9px 14px; font-size: 12.5px; border-top: 1px solid rgba(0,0,0,0.05); align-items: center; }
+.dt-row:hover { background: #fafafa; }
+.dt-name { color: #111; font-weight: 500; }
+.dt-deploy { color: #374151; }
+.dt-deps { color: #6b7280; font-size: 11.5px; }
 </style>

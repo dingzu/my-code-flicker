@@ -9,6 +9,7 @@ export const useDocStore = defineStore('doc', () => {
   const pages = [
     { id: 'preface', title: '产品文档概览' },
     { id: 'brief',   title: '产品思路 · 融合方案' },
+    { id: 'arch',    title: '融合方案 · 技术文档' },
   ]
 
   function open() {

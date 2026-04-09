@@ -58,7 +58,7 @@
             <span class="cap-card-sub">基于 OpenClaw</span>
           </div>
           <ul class="cap-list">
-            <li><span class="cap-row-label">本地</span>Node + Gateway，完整 Agent 能力</li>
+            <li><span class="cap-row-label">本地</span>Node + Gateway</li>
             <li><span class="cap-row-label">云端</span>云端 Gateway</li>
             <li><span class="cap-row-label">端</span>IM · Web · 桌面</li>
           </ul>

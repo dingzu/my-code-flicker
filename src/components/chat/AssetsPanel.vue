@@ -62,7 +62,7 @@
             :key="file.id"
             class="tree-file"
             :class="{ 'tree-file-active': activeFile === file.id }"
-            @click="activeFile = file.id"
+            @click="selectFile(file)"
           >
             <span class="tree-file-icon pdf-icon">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
@@ -175,7 +175,7 @@
 <script setup>
 import { ref } from 'vue'
 
-defineEmits(['close'])
+const emit = defineEmits(['close', 'select-asset'])
 
 const activeTab = ref('assets')
 
@@ -210,6 +210,11 @@ const appList = ref([
     href: '#',
   },
 ])
+
+function selectFile(file) {
+  activeFile.value = file.id
+  emit('select-asset', { type: 'doc', ...file })
+}
 
 function openApp(app) {
   if (app.href && app.href !== '#') {

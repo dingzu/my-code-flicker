@@ -6,11 +6,6 @@
           <polyline points="9 18 15 12 9 6"/>
         </svg>
       </span>
-      <span class="project-icon">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-        </svg>
-      </span>
       <span class="project-name">{{ project.name }}</span>
       <span v-if="project.hasWorkspace" class="project-ws-badge" title="已绑定本地工作区">
         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
@@ -62,7 +57,6 @@ const sidebarStore = useSidebarStore()
   transition: transform 0.15s;
 }
 .project-chevron.open { transform: rotate(90deg); }
-.project-icon { color: rgba(20,20,30,0.4); flex-shrink: 0; }
 .project-name { flex: 1; font-weight: 400; }
 .project-ws-badge {
   width: 16px; height: 16px; border-radius: 4px;

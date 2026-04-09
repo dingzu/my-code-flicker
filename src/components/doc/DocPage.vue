@@ -43,70 +43,31 @@
       <p class="doc-p">两款产品技术栈不同，能力互补，目前相互割裂。</p>
 
       <div class="capability-map">
-        <!-- Myflicker -->
         <div class="cap-card cap-card-mf">
           <div class="cap-card-header">
             <div class="cap-card-dot cap-dot-mf"></div>
-            <span class="cap-card-title">Myflicker（基于 OpenClaw）</span>
+            <span class="cap-card-title">Myflicker</span>
+            <span class="cap-card-sub">基于 OpenClaw</span>
           </div>
-          <div class="cap-tiers">
-            <div class="cap-tier">
-              <div class="cap-tier-label">本地</div>
-              <div class="cap-tier-items">
-                <div class="cap-tag">Node + Gateway</div>
-                <div class="cap-tag cap-tag-key">完整 Agent 能力</div>
-              </div>
-            </div>
-            <div class="cap-tier">
-              <div class="cap-tier-label">云端</div>
-              <div class="cap-tier-items">
-                <div class="cap-tag">云端 Gateway</div>
-              </div>
-            </div>
-            <div class="cap-tier">
-              <div class="cap-tier-label">端</div>
-              <div class="cap-tier-items">
-                <div class="cap-tag">IM</div>
-                <div class="cap-tag">Web</div>
-                <div class="cap-tag">桌面</div>
-              </div>
-            </div>
-          </div>
-          <div class="cap-note cap-note-mf">Gateway 有完整的 Agent 能力：任务调度 + 上下文管理 + 工具调用，与 CF 自研 Agent 在能力维度对等。</div>
+          <ul class="cap-list">
+            <li><span class="cap-row-label">本地</span>Node + Gateway，完整 Agent 能力</li>
+            <li><span class="cap-row-label">云端</span>云端 Gateway</li>
+            <li><span class="cap-row-label">端</span>IM · Web · 桌面</li>
+          </ul>
         </div>
 
         <div class="cap-vs">VS</div>
 
-        <!-- CodeFlicker -->
         <div class="cap-card cap-card-cf">
           <div class="cap-card-header">
             <div class="cap-card-dot cap-dot-cf"></div>
             <span class="cap-card-title">CodeFlicker</span>
           </div>
-          <div class="cap-tiers">
-            <div class="cap-tier">
-              <div class="cap-tier-label">本地</div>
-              <div class="cap-tier-items">
-                <div class="cap-tag">IDE 编辑器</div>
-                <div class="cap-tag cap-tag-key">Duet 并行</div>
-              </div>
-            </div>
-            <div class="cap-tier">
-              <div class="cap-tier-label">云端</div>
-              <div class="cap-tier-items">
-                <div class="cap-tag">云端 IDE</div>
-                <div class="cap-tag cap-tag-key">Duet 并行</div>
-              </div>
-            </div>
-            <div class="cap-tier">
-              <div class="cap-tier-label">端</div>
-              <div class="cap-tier-items">
-                <div class="cap-tag">桌面 IDE</div>
-                <div class="cap-tag">云端 IDE</div>
-              </div>
-            </div>
-          </div>
-          <div class="cap-note cap-note-cf">Duet = 一个工作区下并行多个独立 session，每个 session 独立运行，共享工作区文件。</div>
+          <ul class="cap-list">
+            <li><span class="cap-row-label">本地</span>IDE 编辑器 · Duet 并行</li>
+            <li><span class="cap-row-label">云端</span>云端 IDE · Duet 并行</li>
+            <li><span class="cap-row-label">端</span>桌面 IDE · 云端 IDE</li>
+          </ul>
         </div>
       </div>
 
@@ -558,40 +519,20 @@ code {
   letter-spacing: 0.1em; padding-top: 36px;
 }
 .cap-card {
-  border-radius: 12px; padding: 16px;
-  border: 1.5px solid rgba(0,0,0,0.07);
+  border-radius: 12px; padding: 18px 20px;
+  border: 1px solid rgba(0,0,0,0.07); background: #fff;
 }
-.cap-card-mf { background: #f0f4ff; border-color: rgba(99,102,241,0.2); }
-.cap-card-cf { background: #f0fdf4; border-color: rgba(22,163,74,0.2); }
-.cap-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
-.cap-card-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.cap-card-mf { border-left: 3px solid #6366f1; }
+.cap-card-cf { border-left: 3px solid #16a34a; }
+.cap-card-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+.cap-card-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-bottom: 1px; }
 .cap-dot-mf { background: #6366f1; }
 .cap-dot-cf { background: #16a34a; }
-.cap-card-title { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
-.cap-card-subtitle { font-size: 10.5px; font-weight: 400; letter-spacing: 0.02em; margin-top: 1px; opacity: 0.65; }
-.cap-card-mf .cap-card-title { color: #4338ca; }
-.cap-card-cf .cap-card-title { color: #15803d; }
-.cap-tiers { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
-.cap-tier { display: flex; align-items: flex-start; gap: 10px; }
-.cap-tier-label {
-  font-size: 10px; font-weight: 700; color: #9ca3af; letter-spacing: 0.06em;
-  text-transform: uppercase; flex-shrink: 0; width: 28px; padding-top: 3px;
-}
-.cap-tier-items { display: flex; flex-wrap: wrap; gap: 5px; }
-.cap-tag {
-  font-size: 11.5px; background: rgba(255,255,255,0.8); border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 5px; padding: 2px 8px; color: #374151;
-}
-.cap-tag-key {
-  font-weight: 600;
-}
-.cap-card-mf .cap-tag-key { background: #e0e7ff; border-color: rgba(99,102,241,0.25); color: #4338ca; }
-.cap-card-cf .cap-tag-key { background: #dcfce7; border-color: rgba(22,163,74,0.25); color: #15803d; }
-.cap-note {
-  font-size: 11.5px; line-height: 1.6; border-radius: 7px; padding: 8px 10px; margin-top: 4px;
-}
-.cap-note-mf { background: #e0e7ff; color: #3730a3; }
-.cap-note-cf { background: #dcfce7; color: #14532d; }
+.cap-card-title { font-size: 13px; font-weight: 700; color: #111; }
+.cap-card-sub { font-size: 11px; color: #9ca3af; }
+.cap-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.cap-list li { display: flex; align-items: baseline; gap: 10px; font-size: 13px; color: #374151; line-height: 1.5; }
+.cap-row-label { font-size: 10.5px; font-weight: 600; color: #9ca3af; flex-shrink: 0; width: 28px; letter-spacing: 0.02em; }
 
 /* ── 决策列表 ── */
 .decision-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }

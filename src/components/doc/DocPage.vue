@@ -47,7 +47,7 @@
         <div class="cap-card cap-card-mf">
           <div class="cap-card-header">
             <div class="cap-card-dot cap-dot-mf"></div>
-            <span class="cap-card-title">Myflicker + OpenClaw</span>
+            <span class="cap-card-title">Myflicker（基于 OpenClaw）</span>
           </div>
           <div class="cap-tiers">
             <div class="cap-tier">
@@ -568,6 +568,7 @@ code {
 .cap-dot-mf { background: #6366f1; }
 .cap-dot-cf { background: #16a34a; }
 .cap-card-title { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.cap-card-subtitle { font-size: 10.5px; font-weight: 400; letter-spacing: 0.02em; margin-top: 1px; opacity: 0.65; }
 .cap-card-mf .cap-card-title { color: #4338ca; }
 .cap-card-cf .cap-card-title { color: #15803d; }
 .cap-tiers { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }

@@ -120,7 +120,7 @@
     </div>
 
     <!-- Input box -->
-    <div class="ncv-input-card">
+    <div class="ncv-input-card" ref="inputCardRef">
       <!-- Attachments preview -->
       <div v-if="attachments.length > 0" class="ncv-attachments">
         <div v-for="(att, i) in attachments" :key="i" class="ncv-att-item">
@@ -140,6 +140,17 @@
         </div>
       </div>
 
+      <!-- Rich input for highlight fields -->
+      <div
+        ref="richInputRef"
+        class="ncv-rich-input"
+        contenteditable="true"
+        data-placeholder="告诉 Myflicker 你想做什么…"
+        @input="onRichInput"
+        @keydown="handleRichKey"
+      ></div>
+      
+      <!-- Hidden textarea for plain text fallback -->
       <textarea
         ref="inputRef"
         class="ncv-textarea"
@@ -148,7 +159,16 @@
         rows="1"
         @keydown="handleKey"
         @input="autoResize"
+        style="display: none;"
       ></textarea>
+
+      <!-- Inspiration Popup — anchored to input card -->
+      <InspirePopup
+        :visible="inspirationOpen"
+        @select="handleInspireSelect"
+        @close="inspirationOpen = false"
+        @go-square="handleGoSquare"
+      />
 
       <!-- Bottom toolbar -->
       <div class="ncv-toolbar">
@@ -167,6 +187,14 @@
               <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
             </svg>
           </button>
+          <!-- Inspiration button -->
+          <div class="ncv-insp-wrap" ref="inspirationWrapRef">
+            <button class="ncv-tool-btn" :class="{ active: inspirationOpen }" @click.stop="toggleInspiration" title="灵感触发">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+              </svg>
+            </button>
+          </div>
           <input ref="fileInputRef" type="file" accept="image/*" style="display:none" @change="onImageSelected" multiple />
           <input ref="attachInputRef" type="file" style="display:none" @change="onFileSelected" multiple />
         </div>
@@ -196,8 +224,9 @@
 </template>
 
 <script setup>
-import { ref, computed, inject, onMounted, onUnmounted } from 'vue'
+import { ref, computed, inject, onMounted, onUnmounted, nextTick } from 'vue'
 import { useSidebarStore } from '../../stores/sidebarStore'
+import InspirePopup from './InspirePopup.vue'
 
 const sidebarStore = useSidebarStore()
 const sheetVisible = inject('sheetVisible', null)
@@ -218,6 +247,62 @@ const cloudProjects = computed(() => sidebarStore.projects.filter(p => !p.hasWor
 
 const suggestions = ['帮我写一份需求文档', '分析这份数据', '代码 Review', '头脑风暴']
 
+// Inspiration
+const inspirationOpen = ref(false)
+const inspirationWrapRef = ref(null)
+const richInputRef = ref(null)
+
+function toggleInspiration() {
+  inspirationOpen.value = !inspirationOpen.value
+}
+
+// Handle inspiration selection with highlight fields
+function handleInspireSelect(item) {
+  inspirationOpen.value = false
+
+  // Convert 【field】 to highlight-field spans for rich editing
+  const html = item.prompt.replace(/【([^】]+)】/g, '<span class="highlight-field" contenteditable="true">$1</span>')
+
+  // If we have rich input, use it; otherwise fall back to textarea
+  if (richInputRef.value) {
+    richInputRef.value.innerHTML = html
+    // Focus first field
+    nextTick(() => {
+      const firstField = richInputRef.value.querySelector('.highlight-field')
+      if (firstField) {
+        firstField.focus()
+        selectAllText(firstField)
+      } else {
+        richInputRef.value.focus()
+      }
+    })
+  } else {
+    // Fallback: just set plain text
+    inputText.value = item.prompt
+    inputRef.value?.focus()
+    nextTick(() => {
+      if (inputRef.value) {
+        inputRef.value.style.height = 'auto'
+        inputRef.value.style.height = Math.min(inputRef.value.scrollHeight, 160) + 'px'
+      }
+    })
+  }
+}
+
+function selectAllText(el) {
+  const range = document.createRange()
+  range.selectNodeContents(el)
+  const sel = window.getSelection()
+  sel.removeAllRanges()
+  sel.addRange(range)
+}
+
+function handleGoSquare() {
+  inspirationOpen.value = false
+  // Could navigate to square view or show toast
+  console.log('Go to inspiration square')
+}
+
 function selectCtx(id, label, type) {
   ctxId.value = id
   ctxLabel.value = label
@@ -231,12 +316,44 @@ function openNewProject() {
 }
 
 function send() {
-  const text = inputText.value.trim()
+  // Get text from rich input
+  const richText = richInputRef.value?.innerText?.trim() || ''
+  const text = richText || inputText.value.trim()
   if (!text && attachments.value.length === 0) return
   sidebarStore.sendMessage(sidebarStore.activeSessionId, text)
   inputText.value = ''
+  if (richInputRef.value) richInputRef.value.innerHTML = ''
   attachments.value = []
   if (inputRef.value) inputRef.value.style.height = 'auto'
+}
+
+// Rich input handlers
+function onRichInput(e) {
+  // Sync to inputText for send button state
+  inputText.value = e.target.innerText || ''
+}
+
+function handleRichKey(e) {
+  const active = document.activeElement
+  
+  // Tab navigation between highlight fields
+  if (active.classList?.contains('highlight-field') && e.key === 'Tab') {
+    e.preventDefault()
+    const fields = [...richInputRef.value.querySelectorAll('.highlight-field')]
+    const idx = fields.indexOf(active)
+    const next = e.shiftKey ? fields[idx - 1] : fields[idx + 1]
+    if (next) {
+      next.focus()
+      selectAllText(next)
+    }
+    return
+  }
+  
+  // Cmd/Ctrl + Enter to send
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    e.preventDefault()
+    send()
+  }
 }
 
 function handleKey(e) {
@@ -290,6 +407,9 @@ function onDocClick(e) {
   if (ctxOpen.value && ctxWrapRef.value && !ctxWrapRef.value.contains(e.target)) {
     ctxOpen.value = false
   }
+  if (inspirationOpen.value && inspirationWrapRef.value && !inspirationWrapRef.value.contains(e.target)) {
+    inspirationOpen.value = false
+  }
 }
 onMounted(() => document.addEventListener('click', onDocClick))
 onUnmounted(() => document.removeEventListener('click', onDocClick))
@@ -301,9 +421,9 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   gap: 16px;
-  padding: 32px 40px 48px;
+  padding: 32px 40px 80px;
   overflow: hidden;
 }
 
@@ -402,6 +522,7 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
   padding: 12px 12px 10px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.04);
   transition: border-color 0.15s, box-shadow 0.15s;
+  position: relative;
 }
 .ncv-input-card:focus-within {
   border-color: rgba(0,0,0,0.18);
@@ -530,5 +651,64 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
   background: rgba(255,255,255,0.95);
   border-color: rgba(0,0,0,0.14);
   color: #374151;
+}
+
+/* ── Rich Input ── */
+.ncv-rich-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+  color: #111827;
+  line-height: 1.6;
+  background: transparent;
+  min-height: 24px;
+  max-height: 160px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 0;
+  margin-bottom: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ncv-rich-input:empty::before {
+  content: attr(data-placeholder);
+  color: #d1d5db;
+  pointer-events: none;
+}
+
+/* Highlight editable field */
+.ncv-rich-input :deep(.highlight-field),
+.highlight-field {
+  display: inline-block;
+  background: #fef3c7;
+  border: 1.5px solid #f59e0b;
+  border-radius: 5px;
+  padding: 0 5px;
+  color: #78350f;
+  cursor: text;
+  min-width: 22px;
+  outline: none;
+  transition: all 0.15s;
+  font-size: 14px;
+}
+
+.ncv-rich-input :deep(.highlight-field:focus),
+.highlight-field:focus {
+  background: #fffbeb;
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+}
+
+/* ── Inspiration button ── */
+.ncv-tool-btn.active {
+  background: rgba(0,0,0,0.07);
+  color: #374151;
+}
+
+.ncv-insp-wrap {
+  position: relative;
 }
 </style>

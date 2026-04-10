@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>个人 AI 助理 — 灵感触发</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+  background: #f0f2f5;
+  color: #1f2937;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app { display: flex; flex-direction: column; height: 100vh; }
+
+/* ===== HEADER ===== */
+.header {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 100;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 17px; color: #1f2937;
+}
+.logo-icon {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 9px; display: flex; align-items: center;
+  justify-content: center; color: white; font-size: 17px;
+}
+.nav { display: flex; gap: 4px; }
+.nav-btn {
+  padding: 6px 18px; border-radius: 8px; border: none;
+  background: none; cursor: pointer; font-size: 14px;
+  font-weight: 500; color: #6b7280; transition: all 0.2s;
+}
+.nav-btn.active { background: #eef2ff; color: #6366f1; }
+.nav-btn:hover:not(.active) { background: #f3f4f6; color: #374151; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.username { font-size: 13px; color: #6b7280; }
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 13px; font-weight: 700; cursor: pointer;
+}
+
+/* ===== VIEWS ===== */
+.view { display: none; flex: 1; overflow: hidden; }
+.view.active { display: flex; }
+
+/* ===== CHAT VIEW ===== */
+#chatView { flex-direction: row; }
+
+.chat-sidebar {
+  width: 236px; background: white;
+  border-right: 1px solid #e5e7eb;
+  display: flex; flex-direction: column; flex-shrink: 0;
+}
+.sidebar-header { padding: 14px; border-bottom: 1px solid #f3f4f6; }
+.new-chat-btn {
+  width: 100%; padding: 10px; border: none; border-radius: 10px; cursor: pointer;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white; font-size: 14px; font-weight: 500;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: opacity 0.2s;
+}
+.new-chat-btn:hover { opacity: 0.9; }
+.chat-history { flex: 1; overflow-y: auto; padding: 6px; }
+.history-date { font-size: 11px; color: #9ca3af; padding: 10px 10px 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.history-item {
+  padding: 9px 12px; border-radius: 8px; cursor: pointer;
+  font-size: 13px; color: #4b5563; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; transition: background 0.15s;
+}
+.history-item:hover { background: #f3f4f6; }
+.history-item.active { background: #eef2ff; color: #6366f1; font-weight: 500; }
+
+.chat-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #f8f9fc; }
+
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 28px 32px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.message { display: flex; gap: 12px; max-width: 820px; }
+.message.user { align-self: flex-end; flex-direction: row-reverse; }
+.msg-avatar {
+  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700;
+}
+.message.assistant .msg-avatar { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+.message.user .msg-avatar { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; }
+.msg-content {
+  padding: 13px 18px; border-radius: 14px; font-size: 14px;
+  line-height: 1.65; color: #1f2937; max-width: 580px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.message.assistant .msg-content { background: white; border-radius: 4px 14px 14px 14px; }
+.message.user .msg-content {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white; border-radius: 14px 4px 14px 14px;
+}
+
+/* ===== INPUT AREA ===== */
+.chat-input-area {
+  padding: 14px 24px 18px; background: white;
+  border-top: 1px solid #e5e7eb; position: relative;
+}
+.input-wrapper {
+  display: flex; align-items: flex-end; gap: 8px;
+  background: #f9fafb; border: 1.5px solid #e5e7eb;
+  border-radius: 14px; padding: 10px 12px; transition: border-color 0.2s;
+}
+.input-wrapper:focus-within { border-color: #6366f1; background: white; }
+.input-left { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.icon-btn {
+  width: 32px; height: 32px; border: none; background: none;
+  border-radius: 8px; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; color: #9ca3af; font-size: 17px; transition: all 0.15s;
+}
+.icon-btn:hover { background: #f3f4f6; color: #6b7280; }
+.inspire-btn {
+  height: 32px; padding: 0 12px; border: 1.5px solid #c7d2fe;
+  background: #eef2ff; border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; gap: 5px;
+  color: #6366f1; font-size: 13px; font-weight: 600; transition: all 0.15s;
+}
+.inspire-btn:hover, .inspire-btn.active { background: #6366f1; color: white; border-color: #6366f1; }
+.chat-input {
+  flex: 1; min-height: 24px; max-height: 140px; overflow-y: auto;
+  outline: none; font-size: 14px; line-height: 1.65; color: #1f2937;
+  word-break: break-word; padding: 2px 0;
+}
+.chat-input:empty::before { content: attr(data-placeholder); color: #9ca3af; pointer-events: none; }
+.highlight-field {
+  display: inline-block; background: #fef3c7; border: 1.5px solid #f59e0b;
+  border-radius: 5px; padding: 0 5px; color: #78350f;
+  cursor: text; min-width: 22px; outline: none; transition: all 0.15s;
+  font-size: 14px;
+}
+.highlight-field:focus {
+  background: #fffbeb; border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.15);
+}
+.send-btn {
+  width: 36px; height: 36px; flex-shrink: 0;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: none; border-radius: 10px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 15px; transition: opacity 0.2s;
+}
+.send-btn:hover { opacity: 0.88; }
+
+/* ===== INSPIRE POPUP ===== */
+.inspire-popup {
+  display: none; position: absolute; bottom: calc(100% + 10px);
+  left: 24px; right: 24px; background: white;
+  border: 1px solid #e5e7eb; border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.13);
+  z-index: 300; overflow: hidden;
+  animation: popupIn 0.18s ease;
+}
+.inspire-popup.visible { display: block; }
+@keyframes popupIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+.popup-topbar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 14px 16px 10px;
+}
+.popup-title { font-size: 14px; font-weight: 700; color: #374151; }
+.popup-search-wrap {
+  flex: 1; display: flex; align-items: center; gap: 6px;
+  background: #f3f4f6; border-radius: 8px; padding: 6px 10px;
+}
+.popup-search-wrap input {
+  border: none; background: none; outline: none;
+  font-size: 13px; color: #374151; width: 100%;
+}
+.popup-search-wrap input::placeholder { color: #9ca3af; }
+.popup-tabs {
+  display: flex; padding: 0 10px; gap: 2px;
+  border-bottom: 1px solid #f3f4f6; overflow-x: auto;
+}
+.popup-tabs::-webkit-scrollbar { display: none; }
+.popup-tab {
+  padding: 8px 14px; border: none; background: none;
+  border-radius: 8px 8px 0 0; cursor: pointer; font-size: 13px;
+  color: #6b7280; white-space: nowrap; transition: all 0.15s;
+  font-weight: 500; border-bottom: 2px solid transparent;
+}
+.popup-tab.active { color: #6366f1; border-bottom-color: #6366f1; font-weight: 600; }
+.popup-tab:hover:not(.active) { color: #374151; background: #f9fafb; }
+.popup-items { max-height: 290px; overflow-y: auto; padding: 6px 8px; }
+.popup-items::-webkit-scrollbar { width: 4px; }
+.popup-items::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+.popup-item {
+  padding: 8px 10px; border-radius: 10px; cursor: pointer;
+  transition: background 0.12s; display: flex; align-items: center; gap: 8px;
+}
+.popup-item:hover { background: #f5f3ff; }
+.popup-item:hover .popup-item-btns { opacity: 1; }
+.popup-item-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.popup-item-title { font-size: 13px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.popup-item-preview { font-size: 12px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.popup-item-btns { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; flex-shrink: 0; }
+.pi-btn {
+  height: 26px; padding: 0 9px; border-radius: 6px; border: none;
+  cursor: pointer; font-size: 11px; font-weight: 600; white-space: nowrap;
+  display: flex; align-items: center; gap: 3px; transition: all 0.15s;
+}
+.pi-btn-add { background: #eef2ff; color: #6366f1; }
+.pi-btn-add:hover { background: #6366f1; color: white; }
+.pi-btn-add.added { background: #d1fae5; color: #065f46; cursor: default; }
+.pi-btn-del { background: #fef2f2; color: #dc2626; }
+.pi-btn-del:hover { background: #dc2626; color: white; }
+.p-tag { background: #f3f4f6; color: #9ca3af; border-radius: 4px; font-size: 11px; padding: 2px 7px; font-weight: 500; }
+.p-tag.skill { background: #ede9fe; color: #9370db; }
+.p-tag.timer { background: #fef3c7; color: #d4913a; }
+.p-tag.plain { background: #eef0f3; color: #8c96a6; }
+.popup-empty { text-align: center; padding: 36px 16px; color: #9ca3af; }
+.popup-empty-icon { font-size: 40px; margin-bottom: 10px; }
+.popup-empty p { font-size: 13px; margin-bottom: 14px; }
+.popup-empty-btn {
+  padding: 8px 18px; background: linear-gradient(135deg,#6366f1,#8b5cf6);
+  color: white; border: none; border-radius: 8px; cursor: pointer;
+  font-size: 13px; transition: opacity 0.2s;
+}
+.popup-empty-btn:hover { opacity: 0.9; }
+.popup-footer {
+  border-top: 1px solid #f3f4f6; padding: 10px 16px; text-align: center;
+}
+.popup-footer a {
+  font-size: 12px; color: #6366f1; text-decoration: none; cursor: pointer;
+  font-weight: 500;
+}
+.popup-footer a:hover { text-decoration: underline; }
+
+/* ===== SQUARE VIEW ===== */
+#squareView { flex-direction: column; background: #f8f9fc; }
+
+.sq-header {
+  background: white; border-bottom: 1px solid #e5e7eb;
+  padding: 20px 32px 0; flex-shrink: 0;
+}
+.sq-header-top {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; margin-bottom: 14px; gap: 16px;
+}
+.sq-title-block { }
+.sq-title { font-size: 22px; font-weight: 800; color: #111827; display: flex; align-items: center; gap: 8px; }
+.sq-sub { font-size: 13px; color: #6b7280; margin-top: 3px; }
+.sq-right { display: flex; align-items: center; gap: 10px; }
+.sq-search {
+  display: flex; align-items: center; gap: 8px;
+  background: #f9fafb; border: 1.5px solid #e5e7eb;
+  border-radius: 10px; padding: 8px 14px; width: 320px; transition: border-color 0.2s;
+}
+.sq-search:focus-within { border-color: #6366f1; background: white; }
+.sq-search input { border: none; background: none; outline: none; font-size: 14px; color: #374151; flex: 1; }
+.sq-search input::placeholder { color: #9ca3af; }
+.create-btn {
+  padding: 9px 18px; background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white; border: none; border-radius: 10px; cursor: pointer;
+  font-size: 14px; font-weight: 500; display: flex; align-items: center;
+  gap: 6px; transition: opacity 0.2s; white-space: nowrap;
+}
+.create-btn:hover { opacity: 0.9; }
+.sq-tabs { display: flex; gap: 0; overflow-x: auto; }
+.sq-tabs::-webkit-scrollbar { display: none; }
+.sq-tab {
+  padding: 10px 20px; border: none; background: none; cursor: pointer;
+  font-size: 14px; color: #6b7280; border-bottom: 2.5px solid transparent;
+  transition: all 0.15s; white-space: nowrap; font-weight: 500;
+}
+.sq-tab.active { color: #6366f1; border-bottom-color: #6366f1; font-weight: 700; }
+.sq-tab:hover:not(.active) { color: #374151; background: #f9fafb; }
+
+.sq-body { flex: 1; overflow-y: auto; padding: 20px 32px 32px; }
+
+.filters-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 18px; flex-wrap: wrap; gap: 10px;
+}
+.tag-cloud { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag-chip {
+  padding: 5px 12px; border-radius: 20px; font-size: 12px;
+  border: 1px solid #e5e7eb; background: white; cursor: pointer;
+  color: #6b7280; transition: all 0.15s; font-weight: 500;
+}
+.tag-chip:hover, .tag-chip.active { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+.sort-group {
+  display: flex; gap: 3px; background: #f3f4f6;
+  border-radius: 9px; padding: 3px; flex-shrink: 0;
+}
+.sort-btn {
+  padding: 5px 14px; border: none; background: none; border-radius: 7px;
+  cursor: pointer; font-size: 12px; color: #6b7280; transition: all 0.15s; white-space: nowrap;
+}
+.sort-btn.active { background: white; color: #374151; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
+/* ===== CARDS ===== */
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
+.card {
+  background: white; border-radius: 16px; padding: 18px;
+  border: 1px solid #e5e7eb; transition: all 0.2s;
+  display: flex; flex-direction: column; gap: 11px; position: relative;
+}
+.card:hover { border-color: #c7d2fe; box-shadow: 0 6px 24px rgba(99,102,241,0.1); transform: translateY(-2px); }
+.card-top { display: flex; align-items: center; justify-content: space-between; }
+.cat-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 6px; }
+.c-查阅搜 { background: #dbeafe; color: #1d4ed8; }
+.c-润材料 { background: #dcfce7; color: #15803d; }
+.c-巧制作 { background: #fce7f3; color: #be185d; }
+.c-帮我办 { background: #fef3c7; color: #92400e; }
+.c-提醒我 { background: #ede9fe; color: #6d28d9; }
+.c-写代码 { background: #f1f5f9; color: #334155; }
+.c-其他 { background: #fff7ed; color: #c2410c; }
+.card-title { font-size: 15px; font-weight: 700; color: #111827; }
+.card-excerpt {
+  font-size: 13px; color: #6b7280; line-height: 1.55;
+  display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.card-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+.card-tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #f3f4f6; color: #6b7280; }
+.card-skill-tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #ede9fe; color: #7c3aed; }
+.card-divider { height: 1px; background: #f3f4f6; }
+.card-footer { display: flex; align-items: center; justify-content: space-between; }
+.card-creator { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6b7280; }
+.c-avatar {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: white; font-weight: 700;
+}
+.card-stats { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #9ca3af; }
+.card-stat { display: flex; align-items: center; gap: 3px; }
+.card-action { margin-top: 2px; }
+.config-btn {
+  width: 100%; padding: 9px 0; border: none; border-radius: 9px;
+  cursor: pointer; font-size: 13px; font-weight: 600;
+  transition: all 0.2s;
+}
+.config-btn.unconfigured {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+}
+.config-btn.unconfigured:hover { opacity: 0.88; }
+.config-btn.configured {
+  background: #d1fae5; color: #065f46; cursor: default;
+}
+.config-btn.remove {
+  background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca;
+}
+.config-btn.remove:hover { background: #dc2626; color: white; }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(17,24,39,0.45); z-index: 1000;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.visible { display: flex; animation: fadeIn 0.2s; }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+.modal {
+  background: white; border-radius: 20px; width: 580px;
+  max-width: 92vw; max-height: 88vh; display: flex;
+  flex-direction: column; overflow: hidden;
+  animation: modalIn 0.22s ease;
+}
+@keyframes modalIn {
+  from { opacity:0; transform: scale(0.94) translateY(10px); }
+  to { opacity:1; transform: scale(1) translateY(0); }
+}
+.modal-header {
+  padding: 22px 24px 18px; border-bottom: 1px solid #f3f4f6;
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.modal-title { font-size: 18px; font-weight: 800; color: #111827; }
+.modal-close {
+  width: 32px; height: 32px; border: none; background: #f3f4f6;
+  border-radius: 8px; cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  color: #6b7280; transition: all 0.15s;
+}
+.modal-close:hover { background: #e5e7eb; color: #374151; }
+.modal-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; }
+.form-group { display: flex; flex-direction: column; gap: 7px; }
+.form-label {
+  font-size: 13px; font-weight: 700; color: #374151;
+  display: flex; align-items: center; gap: 5px;
+}
+.req { color: #ef4444; }
+.hint-text { color: #9ca3af; font-weight: 400; font-size: 12px; }
+.form-input, .form-textarea, .form-select {
+  border: 1.5px solid #e5e7eb; border-radius: 10px;
+  padding: 10px 14px; font-size: 14px; color: #1f2937;
+  outline: none; transition: border-color 0.2s; font-family: inherit; background: white;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.08); }
+.form-textarea { min-height: 100px; resize: vertical; line-height: 1.65; }
+.char-count { font-size: 11px; color: #9ca3af; text-align: right; }
+.char-count.over { color: #ef4444; }
+.cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.cat-opt {
+  padding: 10px 8px; border: 1.5px solid #e5e7eb; border-radius: 10px;
+  cursor: pointer; text-align: center; font-size: 13px; color: #6b7280;
+  transition: all 0.15s; background: white; font-weight: 500;
+}
+.cat-opt:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+.cat-opt.selected { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+.tags-input-wrap {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 8px;
+  min-height: 44px; cursor: text; transition: border-color 0.2s;
+}
+.tags-input-wrap:focus-within { border-color: #6366f1; }
+.added-tag {
+  display: flex; align-items: center; gap: 4px;
+  background: #ede9fe; color: #6d28d9; border-radius: 6px;
+  padding: 3px 9px; font-size: 12px; font-weight: 500;
+}
+.remove-tag { cursor: pointer; font-size: 14px; color: #7c3aed; line-height: 1; }
+.remove-tag:hover { color: #ef4444; }
+.tags-text-input { border: none; outline: none; font-size: 13px; color: #374151; min-width: 90px; background: none; }
+.preview-box {
+  background: #f9fafb; border: 1.5px dashed #d1d5db;
+  border-radius: 10px; padding: 14px 16px; font-size: 13px;
+  line-height: 1.75; color: #374151; min-height: 60px;
+}
+/* 预览：普通可编辑字段 —— 黄色 */
+.prev-highlight {
+  display: inline-block; background: #fef3c7; border: 1px solid #f59e0b;
+  border-radius: 4px; padding: 0 4px; color: #78350f; font-size: 12px;
+}
+/* 预览：时间触发 chip —— 橙红色 */
+.prev-timer {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: #fff7ed; border: 1px solid #fb923c;
+  border-radius: 4px; padding: 0 5px; color: #c2410c; font-size: 12px; font-weight: 600;
+}
+/* 预览：Skill chip —— 紫色 */
+.prev-skill {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: #f5f3ff; border: 1px solid #a78bfa;
+  border-radius: 4px; padding: 0 5px; color: #5b21b6; font-size: 12px; font-weight: 600;
+}
+.modal-footer {
+  padding: 16px 24px; border-top: 1px solid #f3f4f6;
+  display: flex; gap: 10px; justify-content: flex-end; flex-shrink: 0;
+}
+.btn-sec {
+  padding: 10px 20px; border: 1.5px solid #e5e7eb;
+  background: white; border-radius: 10px; cursor: pointer;
+  font-size: 14px; color: #374151; transition: all 0.15s; font-weight: 500;
+}
+.btn-sec:hover { background: #f9fafb; border-color: #d1d5db; }
+.btn-pri {
+  padding: 10px 24px; background: linear-gradient(135deg,#6366f1,#8b5cf6);
+  border: none; border-radius: 10px; cursor: pointer;
+  font-size: 14px; font-weight: 600; color: white; transition: opacity 0.2s;
+}
+.btn-pri:hover { opacity: 0.9; }
+
+/* ===== TYPE TABS ===== */
+.type-tabs { display: flex; gap: 8px; }
+.type-tab {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 500;
+  border: 1.5px solid #e5e7eb; background: white; color: #6b7280;
+  cursor: pointer; transition: all 0.15s; user-select: none;
+}
+.type-tab:hover { border-color: #a5b4fc; color: #6366f1; background: #f5f3ff; }
+.type-tab.active { border-color: #6366f1; background: #6366f1; color: white; }
+.type-tab-icon { font-size: 15px; }
+.type-hint { margin-top: 7px; font-size: 12px; color: #9ca3af; min-height: 16px; }
+
+/* ===== RICH PROMPT EDITOR ===== */
+.rich-prompt-editor {
+  min-height: 90px; padding: 10px 12px;
+  border: 1.5px solid #e5e7eb; border-radius: 10px;
+  font-size: 13px; line-height: 1.8; color: #1f2937;
+  outline: none; word-break: break-word; white-space: pre-wrap;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  cursor: text;
+}
+.rich-prompt-editor:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.08);
+}
+.rich-prompt-editor:empty::before {
+  content: attr(data-placeholder);
+  color: #9ca3af; pointer-events: none;
+}
+/* 内联时间触发 chip */
+.timer-chip-inline {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #fef3c7; border: 1.5px solid #fcd34d; border-radius: 12px;
+  padding: 1px 6px 1px 8px; font-size: 12px; font-weight: 600; color: #92400e;
+  user-select: none; vertical-align: middle; white-space: nowrap; cursor: default;
+  line-height: 1.5;
+}
+/* 内联技能引用 chip */
+.skill-chip-inline {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #ede9fe; border: 1.5px solid #c4b5fd; border-radius: 12px;
+  padding: 1px 8px; font-size: 12px; font-weight: 600; color: #5b21b6;
+  user-select: none; vertical-align: middle; white-space: nowrap; cursor: default;
+  line-height: 1.5;
+}
+.chip-del {
+  background: none; border: none; cursor: pointer; color: inherit;
+  font-size: 12px; padding: 0 1px; line-height: 1; opacity: 0.55;
+  transition: opacity 0.12s; vertical-align: middle;
+}
+.chip-del:hover { opacity: 1; }
+/* editor toolbar */
+.editor-toolbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 0 2px;
+}
+.add-chip-btn {
+  padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+  border: 1.5px dashed #d1d5db; background: white; color: #6b7280;
+  cursor: pointer; transition: all 0.15s;
+}
+.add-chip-btn:hover { border-color: #f59e0b; color: #d97706; background: #fffbeb; }
+.add-timer-inline {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.add-timer-inline .form-input { height: 32px; padding: 0 10px; font-size: 12px; width: 210px; }
+.add-timer-inline .btn-sec { padding: 5px 12px; font-size: 12px; height: 32px; }
+
+/* ===== SKILL INSERT TOOLBAR ===== */
+.add-skill-inline {
+  display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; position: relative;
+}
+.add-skill-inline .skill-search-wrap { flex: 1; min-width: 200px; }
+.add-skill-inline .form-input { width: 100%; height: 34px; padding: 0 10px; font-size: 12px; }
+.add-skill-inline .btn-sec { height: 34px; padding: 0 12px; font-size: 12px; }
+
+/* ===== OFFICIAL TAGS POOL ===== */
+.official-tags-pool { display: flex; flex-wrap: wrap; gap: 7px; }
+.off-tag {
+  padding: 5px 13px; border-radius: 20px; font-size: 12px; font-weight: 500;
+  border: 1.5px solid #e5e7eb; background: white; color: #6b7280;
+  cursor: pointer; transition: all 0.15s; user-select: none;
+}
+.off-tag:hover:not(.off-tag-disabled) { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+.off-tag.off-tag-selected { border-color: #6366f1; background: #6366f1; color: white; }
+.off-tag.off-tag-disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ===== SKILL SEARCH ===== */
+.skill-search-wrap { position: relative; }
+.skill-selected-chip {
+  display: flex; align-items: center; gap: 8px; background: #eef2ff;
+  border: 1.5px solid #c7d2fe; border-radius: 10px; padding: 8px 12px;
+  margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #4338ca;
+}
+.skill-chip-clear {
+  background: none; border: none; cursor: pointer; color: #818cf8;
+  font-size: 14px; padding: 0; line-height: 1; transition: color 0.15s;
+}
+.skill-chip-clear:hover { color: #ef4444; }
+.skill-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: white; border: 1.5px solid #e5e7eb; border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 500;
+  max-height: 200px; overflow-y: auto;
+}
+.skill-drop-item {
+  padding: 9px 14px; font-size: 13px; color: #374151; cursor: pointer;
+  transition: background 0.12s; display: flex; align-items: center;
+  justify-content: space-between;
+}
+.skill-drop-item:hover { background: #f5f3ff; color: #6366f1; }
+.skill-drop-key {
+  font-size: 11px; color: #9ca3af; font-family: monospace;
+  background: #f3f4f6; padding: 1px 5px; border-radius: 3px;
+}
+.skill-drop-empty { padding: 14px; font-size: 13px; color: #9ca3af; text-align: center; }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed; bottom: 32px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: #111827; color: white; padding: 12px 22px;
+  border-radius: 12px; font-size: 14px; font-weight: 500;
+  opacity: 0; transition: all 0.3s; z-index: 9999;
+  pointer-events: none; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+@media (max-width: 768px) {
+  .chat-sidebar { display: none; }
+  .sq-body { padding: 14px; }
+  .sq-header { padding: 14px 14px 0; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .sq-right { flex-direction: column; align-items: stretch; }
+  .sq-search { width: 100%; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== HEADER ===== -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">✦</div>
+      <span>个人 AI 助理</span>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" id="navChat" onclick="switchView('chat')">💬 AI 助手</button>
+      <button class="nav-btn" id="navSquare" onclick="switchView('square')">✨ 灵感广场</button>
+    </nav>
+    <div class="header-right">
+      <span class="username">yangfan51</span>
+      <div class="avatar">Y</div>
+    </div>
+  </header>
+
+  <!-- ===== CHAT VIEW ===== -->
+  <div class="view active" id="chatView">
+    <div class="chat-sidebar">
+      <div class="sidebar-header">
+        <button class="new-chat-btn">＋ 新建对话</button>
+      </div>
+      <div class="chat-history">
+        <div class="history-date">今天</div>
+        <div class="history-item active">查询本周班车时刻</div>
+        <div class="history-item">帮我整理会议纪要</div>
+        <div class="history-item">生成 UI 原型</div>
+        <div class="history-date">昨天</div>
+        <div class="history-item">写周报</div>
+        <div class="history-item">Code Review</div>
+        <div class="history-item">预约会议室</div>
+        <div class="history-date">本周</div>
+        <div class="history-item">竞品调研报告</div>
+        <div class="history-item">翻译英文文档</div>
+        <div class="history-item">生成测试用例</div>
+      </div>
+    </div>
+
+    <div class="chat-main">
+      <div class="chat-messages" id="chatMessages">
+        <div class="message assistant">
+          <div class="msg-avatar">✦</div>
+          <div class="msg-content">
+            你好，yangfan51！我是你的个人 AI 助理，已掌握 <strong>72 个高频 Skill</strong>，覆盖通用、调研、设计、编码、测试、行政等场景。<br><br>
+            点击下方 <strong>⚡ 灵感触发</strong> 按钮，从预置条目快速开始对话；或前往 <strong>✨ 灵感广场</strong> 探索更多员工共创的优质提示词 ~
+          </div>
+        </div>
+        <div class="message user">
+          <div class="msg-avatar">Y</div>
+          <div class="msg-content">查一下本周五从望京到公司的班车时刻</div>
+        </div>
+        <div class="message assistant">
+          <div class="msg-avatar">✦</div>
+          <div class="msg-content">
+            已查询 <strong>本周五（4月11日）</strong> 望京方向班车信息 🚌<br><br>
+            📍 <strong>望京地铁站 A 口</strong> — 07:30 / 08:00 / 08:30<br>
+            📍 <strong>望京科技园 1 号门</strong> — 07:45 / 08:15<br>
+            📍 <strong>望京 SOHO T2 楼下</strong> — 08:00 / 08:30<br><br>
+            班车约 <strong>45 分钟</strong>抵达公司。需要预约座位吗？
+          </div>
+        </div>
+      </div>
+
+      <!-- INPUT AREA -->
+      <div class="chat-input-area" id="inputArea">
+        <!-- 灵感触发 Popup -->
+        <div class="inspire-popup" id="inspirePopup">
+          <div class="popup-topbar">
+            <div class="popup-title">⚡ 灵感触发</div>
+            <div class="popup-search-wrap">
+              <span style="color:#9ca3af;font-size:13px;">🔍</span>
+              <input type="text" id="popupSearch" placeholder="搜索条目..." oninput="filterPopup()" />
+            </div>
+          </div>
+          <div class="popup-tabs" id="popupTabs"></div>
+          <div class="popup-items" id="popupItems"></div>
+          <div class="popup-footer">
+            <a onclick="switchView('square')">✨ 去灵感广场探索更多条目 →</a>
+          </div>
+        </div>
+
+        <div class="input-wrapper">
+          <div class="input-left">
+            <button class="icon-btn" title="上传附件">📎</button>
+            <button class="inspire-btn" id="inspireBtn" onclick="togglePopup()">
+              <span>⚡</span> 灵感触发
+            </button>
+          </div>
+          <div class="chat-input" id="chatInput" contenteditable="true" data-placeholder="输入消息，或点击灵感触发快速开始..."></div>
+          <button class="send-btn" onclick="sendMsg()" title="发送 (Enter)">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SQUARE VIEW ===== -->
+  <div class="view" id="squareView">
+    <div class="sq-header">
+      <div class="sq-header-top">
+        <div class="sq-title-block">
+          <div class="sq-title">✨ 灵感广场</div>
+          <div class="sq-sub">浏览员工共创的优质提示词，一键配置到你的 AI 助手灵感触发菜单</div>
+        </div>
+        <div class="sq-right">
+          <div class="sq-search">
+            <span style="color:#9ca3af;">🔍</span>
+            <input type="text" id="squareSearch" placeholder="搜索条目名称、关键词..." oninput="filterSquare()" />
+          </div>
+          <button class="create-btn" onclick="openModal()">＋ 创建条目</button>
+        </div>
+      </div>
+      <div class="sq-tabs" id="squareTabs"></div>
+    </div>
+
+    <div class="sq-body">
+      <div class="filters-row">
+        <div class="tag-cloud" id="tagCloud"></div>
+        <div class="sort-group">
+          <button class="sort-btn active" id="sortHot" onclick="setSort('hot')">🔥 最热</button>
+          <button class="sort-btn" id="sortNew" onclick="setSort('new')">🆕 最新</button>
+          <button class="sort-btn" id="sortOfficial" onclick="setSort('official')">⭐ 官方推荐</button>
+        </div>
+      </div>
+      <div class="cards-grid" id="cardsGrid"></div>
+    </div>
+  </div>
+
+</div><!-- .app -->
+
+<!-- ===== CREATE MODAL ===== -->
+<div class="modal-overlay" id="createModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">创建条目</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- 1. 条目标题 -->
+      <div class="form-group">
+        <div class="form-label">条目标题 <span class="req">*</span> <span class="hint-text">（10 字以内）</span></div>
+        <input type="text" class="form-input" id="fTitle" placeholder="如：查今天班车" maxlength="10" oninput="onFormInput()" />
+        <div class="char-count" id="titleCount">0 / 10</div>
+      </div>
+
+      <!-- 2. 提示词编辑器 + 工具栏 -->
+      <div class="form-group">
+        <div class="form-label">提示词 <span class="req">*</span> <span class="hint-text">（用【】标记可编辑字段；可在任意位置插入时间/Skill）</span></div>
+
+        <div class="rich-prompt-editor" id="fPromptRich"
+          contenteditable="true" spellcheck="false"
+          oninput="onRichEditorInput()"
+          data-placeholder="输入提示词，用【】标记可编辑字段，或点击下方按钮插入时间/Skill..."></div>
+
+        <!-- 统一工具栏 -->
+        <div class="editor-toolbar">
+
+          <!-- 定时触发 inline -->
+          <div class="add-timer-inline" id="addTimerInline" style="display:none">
+            <input class="form-input" type="text" id="timerInput"
+              placeholder="如：每天 09:00  或  周一 10:00"
+              onkeydown="if(event.key==='Enter')confirmTimer()" />
+            <button class="btn-sec" onclick="confirmTimer()">确认</button>
+            <button class="btn-sec" onclick="cancelTimer()">取消</button>
+          </div>
+          <button class="add-chip-btn" id="addTimerBtn"
+            onmousedown="saveEditorSelection(event)"
+            onclick="showAddTimer()">⏰ 插入时间触发</button>
+
+          <!-- Skill 插入 inline -->
+          <div class="add-skill-inline" id="addSkillInline" style="display:none">
+            <div class="skill-search-wrap" id="skillSearchWrap">
+              <input class="form-input" type="text" id="skillSearchInput"
+                placeholder="搜索 Skill 名称后点击插入..."
+                oninput="filterSkillRef()"
+                onfocus="openSkillRefDrop()"
+                autocomplete="off" />
+              <div class="skill-dropdown" id="skillDropdown" style="display:none"></div>
+            </div>
+            <button class="btn-sec" style="flex-shrink:0" onclick="cancelInsertSkill()">取消</button>
+          </div>
+          <button class="add-chip-btn" id="addSkillBtn"
+            onmousedown="saveEditorSelection(event)"
+            onclick="showInsertSkill()">⚡ 插入 Skill</button>
+
+        </div>
+      </div>
+
+      <!-- 4. 预览效果 -->
+      <div class="form-group">
+        <div class="form-label">预览效果</div>
+        <div class="preview-box" id="previewBox">在上方填写提示词后，这里将显示填充效果预览...</div>
+      </div>
+
+      <!-- 5. 主分类 -->
+      <div class="form-group">
+        <div class="form-label">主分类 <span class="req">*</span></div>
+        <div class="cat-grid">
+          <div class="cat-opt" data-cat="查阅搜" onclick="pickCat(this)">🔍 查阅搜</div>
+          <div class="cat-opt" data-cat="润材料" onclick="pickCat(this)">✍️ 润材料</div>
+          <div class="cat-opt" data-cat="巧制作" onclick="pickCat(this)">🎨 巧制作</div>
+          <div class="cat-opt" data-cat="帮我办" onclick="pickCat(this)">📋 帮我办</div>
+          <div class="cat-opt" data-cat="提醒我" onclick="pickCat(this)">⏰ 提醒我</div>
+          <div class="cat-opt" data-cat="写代码" onclick="pickCat(this)">💻 写代码</div>
+        </div>
+      </div>
+
+      <!-- 6. 标签 -->
+      <div class="form-group">
+        <div class="form-label">标签 <span class="hint-text">（选填，最多选 3 个）</span></div>
+        <div class="official-tags-pool" id="officialTagsPool"></div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sec" onclick="closeModal()">取消</button>
+      <button class="btn-sec" onclick="onFormInput(); showToast('👁 预览已更新')">👁 预览</button>
+      <button class="btn-pri" onclick="submitForm()">发布条目</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ====================== DATA ======================
+const ITEMS = [
+  // 查阅搜 12
+  {id:1,cat:'查阅搜',title:'查今天班车',prompt:'帮我查一下【明天/本周五】从【出发地】到公司的班车时刻',skill:'快手班车助手',tags:['行政','日常高频'],source:'官方',likes:234,uses:1203},
+  {id:2,cat:'查阅搜',title:'查今日菜单',prompt:'查一下【园区名称】今天【午餐/晚餐】的菜单，我偏好【清淡/辣】',skill:'快手菜单查询助手',tags:['行政','日常高频'],source:'官方',likes:189,uses:987},
+  {id:3,cat:'查阅搜',title:'查卫生间空闲',prompt:'查一下【园区】【楼层】目前卫生间的空闲情况',skill:'智能卫生间助手',tags:['行政'],source:'官方',likes:67,uses:342},
+  {id:4,cat:'查阅搜',title:'读取文档内容',prompt:'读取这个 Docs 文档链接【URL】的内容，给我总结核心信息',skill:'快手文档助手',tags:['日常高频','文档处理'],source:'官方',likes:312,uses:1567},
+  {id:5,cat:'查阅搜',title:'读取万维表格',prompt:'帮我读取并分析这个万维表格【URL】的数据',skill:'万维表格读取器',tags:['数据'],source:'官方',likes:145,uses:678},
+  {id:6,cat:'查阅搜',title:'查会议内容',prompt:'帮我查一下最近【会议名称/关键词】的会议内容和摘要',skill:'Onepoint会议助手',tags:['日常高频'],source:'官方',likes:203,uses:934},
+  {id:7,cat:'查阅搜',title:'查需求测试用例',prompt:'查询【需求ID】下绑定的所有测试用例',skill:'查询测试用例',tags:['研发'],source:'官方',likes:89,uses:423},
+  {id:8,cat:'查阅搜',title:'搜索行业动态',prompt:'搜索【关键词】最近【一周/一个月】的行业动态，整理成摘要',skill:'互联网内容调研',tags:['AI相关','运营'],source:'官方',likes:178,uses:812},
+  {id:9,cat:'查阅搜',title:'公众号内容搜索',prompt:'帮我在微信公众号搜索关于【主题】的文章，整理核心观点',skill:'互联网内容调研',tags:['运营','AI相关'],source:'官方',likes:134,uses:567},
+  {id:10,cat:'查阅搜',title:'小红书内容调研',prompt:'帮我搜索小红书上关于【关键词】的内容，分析用户反馈',skill:'互联网内容调研',tags:['运营','产品'],source:'官方',likes:156,uses:734},
+  {id:11,cat:'查阅搜',title:'KStack技术文章',prompt:'搜索 KStack 上关于【技术关键词】的文章并总结',skill:'搜索阅读kstack文章',tags:['研发'],source:'官方',likes:98,uses:456},
+  {id:12,cat:'查阅搜',title:'竞品调研',prompt:'调研【竞品名称】的最新功能更新和用户评价',skill:'互联网内容调研',tags:['产品','运营'],source:'官方',likes:267,uses:1123},
+  // 润材料 10
+  {id:13,cat:'润材料',title:'整理会议纪要',prompt:'帮我整理今天的【会议记录文字】，提炼关键决策和行动项，生成结构化摘要',skill:'',tags:['日常高频','文档处理'],source:'官方',likes:445,uses:2134},
+  {id:14,cat:'润材料',title:'写邮件',prompt:'帮我写一封【拒绝/催促/感谢】邮件，对象是【同事/上级/外部合作方】，内容是【事项描述】',skill:'',tags:['日常高频','对外协作'],source:'官方',likes:389,uses:1876},
+  {id:15,cat:'润材料',title:'文字翻译',prompt:'把这段文字翻译成【英文/日文/韩文】，保持专业语气',skill:'',tags:['日常高频','对外协作'],source:'官方',likes:312,uses:1543},
+  {id:16,cat:'润材料',title:'文档转PDF',prompt:'帮我把【Markdown文件路径/文字内容】转成 PDF 文件',skill:'Markdown转PDF工具',tags:['文档处理'],source:'官方',likes:123,uses:567},
+  {id:17,cat:'润材料',title:'创建Word文档',prompt:'帮我创建一个 Word 文档，内容是【文档内容描述】',skill:'Word文档处理',tags:['文档处理'],source:'官方',likes:98,uses:478},
+  {id:18,cat:'润材料',title:'写技术方案',prompt:'帮我写一份关于【主题】的技术方案设计文档',skill:'技术方案设计',tags:['研发'],source:'官方',likes:178,uses:834},
+  {id:19,cat:'润材料',title:'写PRD',prompt:'帮我写一份【功能/项目】的 PRD 文档，目标用户是【用户群体】',skill:'产品管理助手',tags:['产品'],source:'官方',likes:234,uses:1098},
+  {id:20,cat:'润材料',title:'写调研报告',prompt:'帮我写一份清爽风格的调研报告，主题是【报告主题】',skill:'清爽调研报告风格',tags:['产品','运营'],source:'官方',likes:167,uses:789},
+  {id:21,cat:'润材料',title:'分析用户研究',prompt:'帮我分析这份【用户访谈记录/调研数据】，提炼用户核心痛点和需求',skill:'用户研究分析助手',tags:['产品','设计'],source:'官方',likes:145,uses:678},
+  {id:22,cat:'润材料',title:'整理Excel数据',prompt:'帮我把这个 Excel 文件【文件路径】的数据整理成【需要的格式/表格结构】',skill:'Excel表格处理',tags:['数据','文档处理'],source:'官方',likes:112,uses:534},
+  // 巧制作 12
+  {id:23,cat:'巧制作',title:'生成PPT',prompt:'帮我根据【需求描述/文档链接】生成一份 PPT，主题是【PPT主题】',skill:'PPT生成器',tags:['日常高频','设计'],source:'官方',likes:567,uses:2789},
+  {id:24,cat:'巧制作',title:'制作信息图',prompt:'帮我把这段文字做成一张信息图，风格【简洁/商务/活泼】',skill:'信息图生成器',tags:['设计'],source:'官方',likes:234,uses:1123},
+  {id:25,cat:'巧制作',title:'生成UI原型',prompt:'帮我根据【需求描述】生成 UI 产品原型，平台是【PC/移动端】',skill:'UI原型设计',tags:['设计','产品'],source:'官方',likes:312,uses:1456},
+  {id:26,cat:'巧制作',title:'制作数据图表',prompt:'帮我把【数据/文字内容】做成可交互的数据图表，类型是【柱状图/折线图/饼图】',skill:'数据图表生成器',tags:['数据','设计'],source:'官方',likes:289,uses:1367},
+  {id:27,cat:'巧制作',title:'处理PDF文件',prompt:'帮我处理这个 PDF 文件【文件路径】，提取第【N-M】页的内容',skill:'Pdf文件处理',tags:['文档处理'],source:'官方',likes:156,uses:734},
+  {id:28,cat:'巧制作',title:'做演示动效',prompt:'帮我做一个【主题】相关的演示动效视频',skill:'程序化动效',tags:['设计'],source:'官方',likes:189,uses:867},
+  {id:29,cat:'巧制作',title:'制作信息架构图',prompt:'帮我把【一段数据或内容】做成信息架构图',skill:'信息架构图',tags:['产品','设计'],source:'官方',likes:178,uses:823},
+  {id:30,cat:'巧制作',title:'上传文件获取链接',prompt:'帮我把【本地文件路径】上传到 CDN，生成可分享的链接',skill:'文件上传CDN',tags:['研发'],source:'官方',likes:134,uses:623},
+  {id:31,cat:'巧制作',title:'同步文档到Docs',prompt:'帮我把【本地文件路径】这个 Markdown 文件同步上传到 Docs',skill:'docs同步',tags:['文档处理'],source:'官方',likes:89,uses:412},
+  {id:32,cat:'巧制作',title:'从Docs拉取文档',prompt:'帮我从 Docs 拉取【文档链接】的最新内容保存到本地',skill:'docs同步',tags:['文档处理'],source:'官方',likes:78,uses:378},
+  {id:33,cat:'巧制作',title:'做网页',prompt:'帮我做一个网页：【功能描述】',skill:'网页开发',tags:['研发','设计'],source:'官方',likes:345,uses:1678},
+  {id:34,cat:'巧制作',title:'数据可视化',prompt:'帮我把这张数据截图或文字【内容】做成可视化图表，类型是【折线/柱状/饼图】',skill:'数据图表生成器',tags:['数据'],source:'官方',likes:223,uses:1034},
+  // 帮我办 10
+  {id:35,cat:'帮我办',title:'预约会议室',prompt:'帮我预约【明天下午3点】的会议室，关键词【位置/关键词】',skill:'会议室助手',tags:['行政','日常高频'],source:'官方',likes:478,uses:2345},
+  {id:36,cat:'帮我办',title:'邀请访客',prompt:'帮我邀请访客【访客姓名】，【日期】来公司，来访事由是【事由】',skill:'快手访客预约助手',tags:['行政','对外协作'],source:'官方',likes:234,uses:1123},
+  {id:37,cat:'帮我办',title:'预约外卖',prompt:'帮我预约【日期】的外卖，【园区/楼层】，午餐',skill:'快手外卖订餐',tags:['行政','日常高频'],source:'官方',likes:189,uses:934},
+  {id:38,cat:'帮我办',title:'申请临时停车',prompt:'帮我申请【日期】的临时停车，车牌号【车牌号】',skill:'快手停车助手',tags:['行政'],source:'官方',likes:145,uses:678},
+  {id:39,cat:'帮我办',title:'提交报修工单',prompt:'帮我提交一个报修工单，问题是【空调/灯/卫生间等】，位置在【楼层/工位】',skill:'快手行政服务报修工单助手',tags:['行政'],source:'官方',likes:123,uses:567},
+  {id:40,cat:'帮我办',title:'预约理发',prompt:'查一下理发店【本周/下周】【周几】的空闲预约时间',skill:'快手理发店助手',tags:['行政'],source:'官方',likes:167,uses:789},
+  {id:41,cat:'帮我办',title:'查健身课程',prompt:'查一下健身房【今天/本周】的团课安排',skill:'快手健身房查询',tags:['行政'],source:'官方',likes:134,uses:623},
+  {id:42,cat:'帮我办',title:'查充电桩',prompt:'帮我查一下附近充电桩的空闲情况',skill:'充电桩查询',tags:['行政'],source:'官方',likes:89,uses:412},
+  {id:43,cat:'帮我办',title:'对比分析方案',prompt:'帮我对比分析【方案A】和【方案B】，从【效率/成本/用户体验】维度输出结论',skill:'',tags:['产品','日常高频'],source:'官方',likes:256,uses:1234},
+  {id:44,cat:'帮我办',title:'产品思维分析',prompt:'用产品思维帮我分析一下【一个想法/方案】的可行性和潜在问题',skill:'产品思维',tags:['产品'],source:'官方',likes:198,uses:934},
+  // 提醒我 3
+  {id:45,cat:'提醒我',title:'单次定时提醒',prompt:'今天下午【15:00】提醒我【事项】，只提醒一次',skill:'',timer:true,tags:['日常高频'],source:'官方',likes:345,uses:1678},
+  {id:46,cat:'提醒我',title:'每日定时提醒',prompt:'每天【09:00】提醒我【做什么事】',skill:'',timer:true,tags:['日常高频'],source:'官方',likes:289,uses:1345},
+  {id:47,cat:'提醒我',title:'每周AI行业周报',prompt:'每周【周一09:00】给我发一份 AI 行业周报',skill:'AI行业调研',timer:true,tags:['AI相关'],source:'官方',likes:234,uses:1123},
+  // 写代码 10
+  {id:48,cat:'写代码',title:'理解需求文档',prompt:'帮我理解这份需求文档【PRD链接/内容】，输出结构化需求分析',skill:'需求理解',tags:['研发','产品'],source:'官方',likes:178,uses:834},
+  {id:49,cat:'写代码',title:'AI生成测试用例',prompt:'帮我根据这份 PRD【链接/内容】生成手工测试用例',skill:'KTest智能生成手工测试用例',tags:['研发','新手推荐'],source:'官方',likes:234,uses:1123},
+  {id:50,cat:'写代码',title:'生成指定需求用例',prompt:'帮我用 AI 生成【需求ID】对应的测试用例',skill:'KTest智能生成手工测试用例',tags:['研发'],source:'官方',likes:156,uses:734},
+  {id:51,cat:'写代码',title:'写QA黑盒用例',prompt:'帮我写一份关于【需求/功能点】的 QA 黑盒测试用例',skill:'测试用例生成',tags:['研发'],source:'官方',likes:123,uses:567},
+  {id:52,cat:'写代码',title:'Code Review',prompt:'帮我 Review 这段代码，检查潜在问题和改进建议：【粘贴代码】',skill:'',tags:['研发','日常高频'],source:'官方',likes:389,uses:1876},
+  {id:53,cat:'写代码',title:'解释报错信息',prompt:'解释一下这段报错信息，并给出解决方案：【粘贴报错内容】',skill:'',tags:['研发','新手推荐'],source:'官方',likes:312,uses:1543},
+  {id:54,cat:'写代码',title:'查询内部SDK文档',prompt:'帮我查询【快手内部组件/SDK名称】的使用文档和示例',skill:'kate-mind知识查询',tags:['研发'],source:'官方',likes:145,uses:678},
+  {id:55,cat:'写代码',title:'测试网站操作流程',prompt:'帮我测试并记录这个网站【URL】的操作流程文档',skill:'测试文档生成',tags:['研发'],source:'官方',likes:89,uses:412},
+  {id:56,cat:'写代码',title:'生成Commit Message',prompt:'帮我把这段内容生成规范的 Git Commit Message',skill:'提交信息生成',tags:['研发','日常高频'],source:'官方',likes:267,uses:1234},
+  {id:57,cat:'写代码',title:'数据趋势查询',prompt:'帮我查询【业务指标名称】最近【7天/30天】的数据趋势',skill:'data-agent',tags:['数据','研发'],source:'官方',likes:178,uses:834},
+  // 原"其他" 3 条 → 归入合适主分类
+  {id:58,cat:'查阅搜',title:'数据分析',prompt:'帮我分析这份数据【文件/表格链接】，找出【关键指标的趋势/异常/原因】',skill:'数据分析助手',tags:['数据'],source:'官方',likes:234,uses:1123},
+  {id:59,cat:'查阅搜',title:'调研AI今日动态',prompt:'今天 AI 领域有什么新动态？帮我整理成日报',skill:'AI行业调研',tags:['AI相关','日常高频'],source:'官方',likes:389,uses:1876},
+  {id:60,cat:'提醒我',title:'推送AI早报',prompt:'每天【08:30】给我推送一份 AI 行业早报',skill:'AI资讯监控助手',timer:true,tags:['AI相关'],source:'官方',likes:312,uses:1543},
+];
+
+const POPUP_TABS = ['查阅搜','润材料','巧制作','帮我办','提醒我','写代码','我的'];
+const SQ_TABS = ['全部','查阅搜','润材料','巧制作','帮我办','提醒我','写代码','我的'];
+const TAGS_LIST = ['行政','研发','产品','设计','数据','运营','HR','AI相关','日常高频','新手推荐','文档处理','对外协作'];
+const AVATAR_COLORS = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#22c55e','#3b82f6','#ef4444','#06b6d4'];
+
+// State
+let myItems = [];           // ids of configured items
+let configuredSet = new Set();
+let popupTab = '查阅搜';
+let squareTab = '全部';
+let sortMode = 'hot';
+let tagFilter = '';
+let popupQ = '';
+let squareQ = '';
+let formTagsList = [];
+let formCat = '';
+function avatarColor(str) {
+  let h = 0;
+  for (let c of str) h = (h * 31 + c.charCodeAt(0)) | 0;
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+
+function fmtNum(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : n; }
+
+// ====================== VIEW ======================
+function switchView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  if (v === 'chat') {
+    document.getElementById('chatView').classList.add('active');
+    document.getElementById('navChat').classList.add('active');
+    closePopup();
+  } else {
+    document.getElementById('squareView').classList.add('active');
+    document.getElementById('navSquare').classList.add('active');
+    renderSqTabs();
+    renderTagCloud();
+    renderCards();
+  }
+}
+
+// ====================== POPUP ======================
+function togglePopup() {
+  const popup = document.getElementById('inspirePopup');
+  const btn = document.getElementById('inspireBtn');
+  if (popup.classList.contains('visible')) {
+    closePopup();
+  } else {
+    popup.classList.add('visible');
+    btn.classList.add('active');
+    document.getElementById('popupSearch').value = '';
+    popupQ = '';
+    renderPopupTabs();
+    renderPopupItems();
+    setTimeout(() => document.getElementById('popupSearch').focus(), 80);
+  }
+}
+
+function closePopup() {
+  document.getElementById('inspirePopup').classList.remove('visible');
+  document.getElementById('inspireBtn').classList.remove('active');
+}
+
+document.addEventListener('click', (e) => {
+  // 如果点击的元素已从 DOM 移除（如 Tab 重渲染时），不触发关闭
+  if (!document.contains(e.target)) return;
+  const popup = document.getElementById('inspirePopup');
+  const btn = document.getElementById('inspireBtn');
+  if (!popup.contains(e.target) && !btn.contains(e.target)) closePopup();
+});
+
+function renderPopupTabs() {
+  document.getElementById('popupTabs').innerHTML = POPUP_TABS.map(t => `
+    <button class="popup-tab ${t===popupTab?'active':''}" onclick="setPopupTab('${t}')">${t}</button>
+  `).join('');
+}
+
+function setPopupTab(t) {
+  popupTab = t;
+  renderPopupTabs();
+  renderPopupItems();
+}
+
+function filterPopup() {
+  popupQ = document.getElementById('popupSearch').value.toLowerCase();
+  renderPopupItems();
+}
+
+function renderPopupItems() {
+  const el = document.getElementById('popupItems');
+  let list = [];
+
+  if (popupTab === '我的') {
+    list = myItems.map(id => ITEMS.find(i => i.id === id)).filter(Boolean);
+    if (!list.length) {
+      el.innerHTML = `
+        <div class="popup-empty">
+          <div class="popup-empty-icon">✨</div>
+          <p>还没有配置任何条目<br>去广场探索，一键加入你的专属菜单</p>
+          <button class="popup-empty-btn" onclick="switchView('square')">去灵感广场探索</button>
+        </div>`;
+      return;
+    }
+  } else {
+    list = ITEMS.filter(i => i.cat === popupTab);
+  }
+
+  if (popupQ) list = list.filter(i => i.title.includes(popupQ) || i.prompt.toLowerCase().includes(popupQ));
+
+  if (!list.length) {
+    el.innerHTML = `<div class="popup-empty"><div class="popup-empty-icon">🔍</div><p>未找到相关条目</p></div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(item => {
+    const inMy = myItems.includes(item.id);
+    const actionBtn = popupTab === '我的'
+      ? `<button class="pi-btn pi-btn-del" onclick="popupRemove(event,${item.id})" title="从我的移除">🗑 移除</button>`
+      : inMy
+        ? `<button class="pi-btn pi-btn-add added" onclick="event.stopPropagation()" title="已添加">✓ 已添加</button>`
+        : `<button class="pi-btn pi-btn-add" onclick="popupAdd(event,${item.id})" title="加入我的">＋ 加入我的</button>`;
+    return `
+    <div class="popup-item" onclick="fillPrompt(${item.id})">
+      <div class="popup-item-body">
+        <div class="popup-item-title">
+          ${item.title}
+          ${item.skill ? `<span class="p-tag skill">⚡ ${item.skill}</span>` : ''}
+          ${item.timer ? `<span class="p-tag timer">⏰ 定时任务</span>` : ''}
+          ${!item.skill && !item.timer ? `<span class="p-tag plain">提示词</span>` : ''}
+        </div>
+        <div class="popup-item-preview">${item.prompt}</div>
+      </div>
+      <div class="popup-item-btns">${actionBtn}</div>
+    </div>`;
+  }).join('');
+}
+
+function popupAdd(e, id) {
+  e.stopPropagation();
+  if (myItems.includes(id)) return;
+  myItems.unshift(id);
+  configuredSet.add(id);
+  renderPopupItems();
+  showToast('✅ 已加入「我的」菜单');
+}
+
+function popupRemove(e, id) {
+  e.stopPropagation();
+  myItems = myItems.filter(i => i !== id);
+  configuredSet.delete(id);
+  renderPopupItems();
+  showToast('已从「我的」移除');
+}
+
+function fillPrompt(id) {
+  const item = ITEMS.find(i => i.id === id);
+  if (!item) return;
+  const input = document.getElementById('chatInput');
+  const html = item.prompt.replace(/【([^】]+)】/g, '<span class="highlight-field" contenteditable="true">$1</span>');
+  input.innerHTML = html;
+  closePopup();
+  const first = input.querySelector('.highlight-field');
+  if (first) {
+    setTimeout(() => { first.focus(); selectAll(first); }, 60);
+  } else {
+    input.focus();
+  }
+}
+
+function selectAll(el) {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+// Tab / Enter key in chat input
+document.addEventListener('keydown', e => {
+  const active = document.activeElement;
+  const input = document.getElementById('chatInput');
+  if (active.classList && active.classList.contains('highlight-field')) {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const fields = [...input.querySelectorAll('.highlight-field')];
+      const idx = fields.indexOf(active);
+      const next = fields[idx + 1];
+      if (next) { next.focus(); selectAll(next); }
+    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+  } else if (active === input && e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault(); sendMsg();
+  }
+});
+
+// ====================== CHAT ======================
+function sendMsg() {
+  const input = document.getElementById('chatInput');
+  const text = input.innerText.trim();
+  if (!text) return;
+  const msgs = document.getElementById('chatMessages');
+  const uid = 'typing_' + Date.now();
+  msgs.innerHTML += `
+    <div class="message user">
+      <div class="msg-avatar">Y</div>
+      <div class="msg-content">${text.replace(/\n/g,'<br>').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>
+    <div class="message assistant" id="${uid}">
+      <div class="msg-avatar">✦</div>
+      <div class="msg-content" style="color:#c4b5fd;">AI 正在思考中...</div>
+    </div>`;
+  input.innerHTML = '';
+  msgs.scrollTop = msgs.scrollHeight;
+  setTimeout(() => {
+    const el = document.getElementById(uid);
+    if (el) {
+      el.querySelector('.msg-content').style.color = '';
+      el.querySelector('.msg-content').innerHTML = '好的，我已收到你的请求！这是一个交互演示界面，实际接入 AI 能力后，你会在这里看到完整的 AI 响应。你也可以点击 <strong>⚡ 灵感触发</strong> 使用预置条目快速开始对话。';
+      el.removeAttribute('id');
+    }
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 1200);
+}
+
+// ====================== SQUARE ======================
+function renderSqTabs() {
+  document.getElementById('squareTabs').innerHTML = SQ_TABS.map(t => `
+    <button class="sq-tab ${t===squareTab?'active':''}" onclick="setSqTab('${t}')">${t}</button>
+  `).join('');
+}
+
+function setSqTab(t) {
+  squareTab = t;
+  tagFilter = '';
+  document.getElementById('squareSearch').value = '';
+  squareQ = '';
+  renderSqTabs();
+  renderTagCloud();
+  renderCards();
+}
+
+function setSort(s) {
+  sortMode = s;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sort' + s.charAt(0).toUpperCase() + s.slice(1)).classList.add('active');
+  renderCards();
+}
+
+function filterSquare() {
+  squareQ = document.getElementById('squareSearch').value.toLowerCase();
+  renderCards();
+}
+
+function setTagFilter(tag) {
+  tagFilter = tagFilter === tag ? '' : tag;
+  renderTagCloud();
+  renderCards();
+}
+
+function renderTagCloud() {
+  document.getElementById('tagCloud').innerHTML = TAGS_LIST.map(tag => `
+    <div class="tag-chip ${tag===tagFilter?'active':''}" onclick="setTagFilter('${tag}')">${tag}</div>
+  `).join('');
+}
+
+function renderCards() {
+  // 广场「我的」Tab：展示已配置条目
+  const isMySqTab = squareTab === '我的';
+
+  // 标签云与排序在「我的」Tab 下隐藏
+  document.getElementById('tagCloud').parentElement.style.display = isMySqTab ? 'none' : '';
+
+  let list = [...ITEMS];
+  if (isMySqTab) {
+    // 按 myItems 顺序展示（最新配置在前）
+    list = myItems.map(id => ITEMS.find(i => i.id === id)).filter(Boolean);
+    if (squareQ) list = list.filter(i => i.title.includes(squareQ) || i.prompt.toLowerCase().includes(squareQ));
+  } else {
+    if (squareTab !== '全部') list = list.filter(i => i.cat === squareTab);
+    if (tagFilter) list = list.filter(i => i.tags.includes(tagFilter));
+    if (squareQ) list = list.filter(i => i.title.includes(squareQ) || i.prompt.toLowerCase().includes(squareQ) || i.tags.some(t => t.includes(squareQ)));
+    if (sortMode === 'hot') list.sort((a,b) => b.uses - a.uses);
+    else if (sortMode === 'new') list.sort((a,b) => b.id - a.id);
+    else list.sort((a,b) => (b.source==='官方'?1:0) - (a.source==='官方'?1:0));
+  }
+
+  const grid = document.getElementById('cardsGrid');
+  if (!list.length) {
+    grid.innerHTML = isMySqTab
+      ? `<div style="grid-column:1/-1;text-align:center;padding:64px 24px;">
+           <div style="font-size:48px;margin-bottom:16px;">✨</div>
+           <div style="font-size:16px;font-weight:600;color:#374151;margin-bottom:8px;">还没有配置任何条目</div>
+           <div style="font-size:14px;color:#9ca3af;margin-bottom:20px;">浏览上方分类 Tab，点击「一键配置」即可加入</div>
+           <button onclick="setSqTab('全部')" style="padding:9px 20px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:500;">去浏览条目</button>
+         </div>`
+      : `<div style="grid-column:1/-1;text-align:center;padding:64px;color:#9ca3af;font-size:15px;">😶 未找到相关条目</div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(item => {
+    const configured = configuredSet.has(item.id);
+    const cColor = item.source === '官方' ? '#6366f1' : avatarColor(item.source);
+    const cLabel = item.source === '官方' ? '官' : item.source[0];
+    // 「我的」Tab 下显示「取消配置」，其余 Tab 正常
+    const actionBtn = isMySqTab
+      ? `<button class="config-btn remove" onclick="removeItem(event,${item.id})">✕ 取消配置</button>`
+      : `<button class="config-btn ${configured?'configured':'unconfigured'}" onclick="configureItem(event,${item.id})">
+           ${configured ? '✓ 已添加到我的菜单' : '⚡ 一键配置'}
+         </button>`;
+    return `
+    <div class="card">
+      <div class="card-top">
+        <span class="cat-badge c-${item.cat}">${item.cat}</span>
+      </div>
+      <div class="card-title">${item.title}</div>
+      <div class="card-excerpt">${item.prompt}</div>
+      <div class="card-tags">
+        ${item.tags.map(t=>`<span class="card-tag">${t}</span>`).join('')}
+        ${item.skill?`<span class="card-skill-tag">⚡ ${item.skill}</span>`:''}
+      </div>
+      <div class="card-divider"></div>
+      <div class="card-footer">
+        <div class="card-creator">
+          <div class="c-avatar" style="background:${cColor}">${cLabel}</div>
+          ${item.source}
+        </div>
+        <div class="card-stats">
+          <span class="card-stat">🔥 ${fmtNum(item.uses)}</span>
+          <span class="card-stat">👍 ${item.likes}</span>
+        </div>
+      </div>
+      <div class="card-action">${actionBtn}</div>
+    </div>`;
+  }).join('');
+}
+
+
+function configureItem(e, id) {
+  e.stopPropagation();
+  if (configuredSet.has(id)) return;
+  configuredSet.add(id);
+  if (!myItems.includes(id)) myItems.unshift(id);
+  renderCards();
+  showToast('✅ 已添加到灵感触发「我的」菜单');
+}
+
+function removeItem(e, id) {
+  e.stopPropagation();
+  configuredSet.delete(id);
+  myItems = myItems.filter(i => i !== id);
+  renderCards();
+  showToast('已从「我的」菜单移除');
+}
+
+// ====================== MODAL ======================
+
+// 全量 Skill 列表（来自 skills_catalog）
+const SKILLS_LIST = [
+  {name:'docs同步',key:'docs-shuttle'}, {name:'定时任务',key:'scheduled-kim-message'},
+  {name:'技能自动搜索',key:'find-skills'}, {name:'Excel表格处理',key:'xlsx'},
+  {name:'文件上传 CDN',key:'upload-cdn'}, {name:'Word文档处理',key:'docx'},
+  {name:'企业表格读取',key:'enterprise-sheet'}, {name:'Agent-Browser',key:'Agent-Browser'},
+  {name:'KATE 研发流程',key:'kate-dev-flow'}, {name:'测试用例生成',key:'qa-test-case'},
+  {name:'data-agent',key:'data-agent'}, {name:'测试文档生成',key:'browser-testing-doc-generator'},
+  {name:'产品思维',key:'product-thinking'}, {name:'提交信息生成',key:'commit-msg'},
+  {name:'快手文档助手',key:'kwai-docs'}, {name:'财务分析助手',key:'finance-analytics'},
+  {name:'Markdown 转 PDF 工具',key:'markdown-to-pdf'}, {name:'kate-mind 知识查询',key:'kate-mind'},
+  {name:'Onepoint会议助手',key:'onepoint-meeting-skill-prod'}, {name:'万维表格读取器',key:'enterprise-metasheet-read'},
+  {name:'需求理解',key:'kate-prd-understand'}, {name:'Tavily 网络搜索',key:'tavily-search'},
+  {name:'互联网内容调研',key:'CF-internet-content-research'}, {name:'搜索、阅读 kstack 文章',key:'kstack-reader'},
+  {name:'多引擎搜索',key:'multi-search-engine'}, {name:'用户研究分析助手',key:'user-research-synthesis'},
+  {name:'AI资讯监控助手',key:'ai-news-monitor'}, {name:'数据分析助手',key:'data-analyst'},
+  {name:'AI行业调研',key:'ai-insight'}, {name:'PPT生成器',key:'ks-design-slide-deck-v4.6.1'},
+  {name:'Pdf文件处理',key:'pdf'}, {name:'技术方案设计',key:'kate-brief-design'},
+  {name:'清爽调研报告风格',key:'qingshuang-research-style'}, {name:'信息架构图',key:'infographics-designer'},
+  {name:'程序化动效',key:'remotion_skill'}, {name:'信息图生成器',key:'ks-design-infographic-v3.2.0'},
+  {name:'数据图表生成器',key:'ks-design-editable-chart-v1.2.0'}, {name:'UI原型设计',key:'ks-design-ui-prototype-v1.4.0'},
+  {name:'网页开发',key:'web-dev-workflow'}, {name:'KTest智能生成手工测试用例',key:'ktest-generate-case'},
+  {name:'查询测试用例',key:'ktest-query-requirement-cases'}, {name:'卫生间查询',key:'awsome-wc'},
+  {name:'会议室助手',key:'meeting-room-booking'}, {name:'充电桩查询',key:'wanjia-charging'},
+  {name:'产品管理助手',key:'product-management'}, {name:'快手班车助手',key:'kuaishou-bus-query'},
+  {name:'快手外卖订餐',key:'cafeteria-takeout'}, {name:'快手菜单查询助手',key:'kuaishou-cafeteria-recommendation'},
+  {name:'快手访客预约助手',key:'kuaishou-visitor-reserve'}, {name:'智能卫生间助手',key:'kuaishou-intelligent-device-xz'},
+  {name:'快手停车助手',key:'kuaishou-parking-skill'}, {name:'快手行政服务报修工单助手',key:'kuaishou-repair-xz'},
+  {name:'快手理发店助手',key:'kwai-barbershop'}, {name:'快手健身房查询',key:'kwai-gym'},
+];
+
+let skillRef         = '';
+let editorSavedRange = null;
+
+// ---- chip 元素工厂 ----
+function createTimerChipEl(time) {
+  const chip = document.createElement('span');
+  chip.className = 'timer-chip-inline';
+  chip.setAttribute('contenteditable', 'false');
+  chip.dataset.time = time;
+  chip.appendChild(document.createTextNode('⏰ ' + time + ' '));
+  const btn = document.createElement('button');
+  btn.className = 'chip-del';
+  btn.textContent = '✕';
+  btn.addEventListener('mousedown', e => e.preventDefault());
+  btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); removeTimerChip(chip); });
+  chip.appendChild(btn);
+  return chip;
+}
+
+function createSkillChipEl(name) {
+  const chip = document.createElement('span');
+  chip.className = 'skill-chip-inline';
+  chip.setAttribute('contenteditable', 'false');
+  chip.dataset.skill = name;
+  chip.appendChild(document.createTextNode('⚡ ' + name + ' '));
+  const btn = document.createElement('button');
+  btn.className = 'chip-del';
+  btn.textContent = '✕';
+  btn.addEventListener('mousedown', e => e.preventDefault());
+  btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); removeSkillChip(chip); });
+  chip.appendChild(btn);
+  return chip;
+}
+
+// ---- 定时触发：光标位置保存 & 插入 ----
+function saveEditorSelection(e) {
+  // onmousedown: 阻止按钮夺走编辑器焦点，保存光标位置
+  e.preventDefault();
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) {
+    const editor = document.getElementById('fPromptRich');
+    const range = sel.getRangeAt(0);
+    if (editor === range.commonAncestorContainer || editor.contains(range.commonAncestorContainer)) {
+      editorSavedRange = range.cloneRange();
+    }
+  }
+  // onclick 仍会正常触发 showAddTimer()
+}
+
+function showAddTimer() {
+  document.getElementById('addTimerInline').style.display = 'flex';
+  document.getElementById('addTimerBtn').style.display = 'none';
+  const inp = document.getElementById('timerInput');
+  inp.value = '';
+  inp.focus();
+}
+
+function confirmTimer() {
+  const val = document.getElementById('timerInput').value.trim();
+  if (val) insertTimerChipAtCursor(val);
+  cancelTimer();
+}
+
+function cancelTimer() {
+  const inl = document.getElementById('addTimerInline');
+  const btn = document.getElementById('addTimerBtn');
+  if (inl) inl.style.display = 'none';
+  if (btn) btn.style.display = '';
+  editorSavedRange = null;
+}
+
+function insertTimerChipAtCursor(time) {
+  const editor = document.getElementById('fPromptRich');
+  const chip   = createTimerChipEl(time);
+  const spacer = document.createTextNode('\u00a0');
+  const sel    = window.getSelection();
+
+  const useRange = (range) => {
+    range.deleteContents();
+    range.insertNode(spacer);
+    range.insertNode(chip);            // chip 在 spacer 前
+    const after = document.createRange();
+    after.setStartAfter(spacer);
+    after.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(after);
+  };
+
+  if (editorSavedRange &&
+      (editor === editorSavedRange.commonAncestorContainer ||
+       editor.contains(editorSavedRange.commonAncestorContainer))) {
+    sel.removeAllRanges();
+    sel.addRange(editorSavedRange);
+    useRange(editorSavedRange);
+  } else if (sel && sel.rangeCount > 0 &&
+             editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+    useRange(sel.getRangeAt(0));
+  } else {
+    editor.appendChild(chip);
+    editor.appendChild(spacer);
+  }
+
+  editorSavedRange = null;
+  editor.focus();
+  updateTimerChipDels();
+  onRichEditorInput();
+}
+
+function removeTimerChip(chip) {
+  const editor = document.getElementById('fPromptRich');
+  const chips = editor.querySelectorAll('.timer-chip-inline');
+  if (chips.length <= 1) return; // 不可删除最后一个
+  // 顺带清除 chip 后紧跟的 non-breaking space
+  const next = chip.nextSibling;
+  if (next && next.nodeType === Node.TEXT_NODE && next.textContent.startsWith('\u00a0')) {
+    const rest = next.textContent.slice(1);
+    if (rest) next.textContent = rest; else next.remove();
+  }
+  chip.remove();
+  updateTimerChipDels();
+  onRichEditorInput();
+}
+
+function updateTimerChipDels() {
+  const editor = document.getElementById('fPromptRich');
+  const chips  = editor.querySelectorAll('.timer-chip-inline');
+  chips.forEach(c => {
+    const btn = c.querySelector('.chip-del');
+    if (btn) btn.style.display = chips.length <= 1 ? 'none' : '';
+  });
+}
+
+// ---- 技能引用：插入 chip ----
+function showInsertSkill() {
+  document.getElementById('addSkillInline').style.display = 'flex';
+  document.getElementById('addSkillBtn').style.display = 'none';
+  const inp = document.getElementById('skillSearchInput');
+  inp.value = '';
+  renderSkillRefDropList('');
+  document.getElementById('skillDropdown').style.display = '';
+  inp.focus();
+}
+
+function cancelInsertSkill() {
+  document.getElementById('addSkillInline').style.display = 'none';
+  document.getElementById('addSkillBtn').style.display = '';
+  closeSkillRefDrop();
+  editorSavedRange = null;
+}
+
+function insertSkillChipAtCursor(name) {
+  const editor = document.getElementById('fPromptRich');
+  const chip   = createSkillChipEl(name);
+  const spacer = document.createTextNode('\u00a0');
+  const sel    = window.getSelection();
+
+  const useRange = (range) => {
+    range.deleteContents();
+    range.insertNode(spacer);
+    range.insertNode(chip);
+    const after = document.createRange();
+    after.setStartAfter(spacer);
+    after.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(after);
+  };
+
+  if (editorSavedRange &&
+      (editor === editorSavedRange.commonAncestorContainer ||
+       editor.contains(editorSavedRange.commonAncestorContainer))) {
+    sel.removeAllRanges();
+    sel.addRange(editorSavedRange);
+    useRange(editorSavedRange);
+  } else if (sel && sel.rangeCount > 0 &&
+             editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+    useRange(sel.getRangeAt(0));
+  } else {
+    editor.appendChild(chip);
+    editor.appendChild(spacer);
+  }
+
+  editorSavedRange = null;
+  editor.focus();
+  updateSkillChipDels();
+  onRichEditorInput();
+}
+
+function removeSkillChip(chip) {
+  const editor = document.getElementById('fPromptRich');
+  const chips  = editor.querySelectorAll('.skill-chip-inline');
+  if (chips.length <= 1) return;
+  const next = chip.nextSibling;
+  if (next && next.nodeType === Node.TEXT_NODE && next.textContent.startsWith('\u00a0')) {
+    const rest = next.textContent.slice(1);
+    if (rest) next.textContent = rest; else next.remove();
+  }
+  chip.remove();
+  updateSkillChipDels();
+  onRichEditorInput();
+}
+
+function updateSkillChipDels() {
+  const editor = document.getElementById('fPromptRich');
+  const chips  = editor.querySelectorAll('.skill-chip-inline');
+  chips.forEach(c => {
+    const btn = c.querySelector('.chip-del');
+    if (btn) btn.style.display = chips.length <= 1 ? 'none' : '';
+  });
+}
+
+function filterSkillRef() {
+  const q = document.getElementById('skillSearchInput').value.trim();
+  renderSkillRefDropList(q);
+  document.getElementById('skillDropdown').style.display = '';
+}
+
+function openSkillRefDrop() {
+  renderSkillRefDropList(document.getElementById('skillSearchInput').value.trim());
+  document.getElementById('skillDropdown').style.display = '';
+}
+
+function closeSkillRefDrop() {
+  const el = document.getElementById('skillDropdown');
+  if (el) el.style.display = 'none';
+}
+
+function renderSkillRefDropList(q) {
+  const dropdown = document.getElementById('skillDropdown');
+  if (!dropdown) return;
+  const filtered = q
+    ? SKILLS_LIST.filter(s => s.name.includes(q) || s.key.includes(q.toLowerCase()))
+    : SKILLS_LIST;
+  if (!filtered.length) {
+    dropdown.innerHTML = `<div class="skill-drop-empty">未找到匹配的 Skill</div>`;
+    return;
+  }
+  dropdown.innerHTML = filtered.map(s => `
+    <div class="skill-drop-item" onclick="selectSkillRef('${s.name}')">
+      <span>${s.name}</span>
+      <span class="skill-drop-key">${s.key}</span>
+    </div>`).join('');
+}
+
+function selectSkillRef(name) {
+  skillRef = name;
+  insertSkillChipAtCursor(name);
+  cancelInsertSkill();
+}
+
+// 点击外部关闭 Skill 下拉
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('skillSearchWrap');
+  if (wrap && !wrap.contains(e.target)) closeSkillRefDrop();
+});
+
+// ---- 读取富文本编辑器内容 ----
+// 返回带特殊占位符的文本，供 onFormInput 分颜色渲染
+// 普通文字中的【】保持原样，timer/skill chip 用不同标记区分
+const TIMER_MARK  = (t) => `\x02TIMER\x03${t}\x02/TIMER\x03`;
+const SKILL_MARK  = (s) => `\x02SKILL\x03${s}\x02/SKILL\x03`;
+
+function getRichPromptText() {
+  const editor = document.getElementById('fPromptRich');
+  let result = '';
+  function walk(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      result += node.textContent.replace(/\u00a0/g, ' ');
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      if (node.classList.contains('timer-chip-inline')) {
+        result += TIMER_MARK(node.dataset.time);
+      } else if (node.classList.contains('skill-chip-inline')) {
+        result += SKILL_MARK(node.dataset.skill);
+      } else {
+        node.childNodes.forEach(walk);
+      }
+    }
+  }
+  editor.childNodes.forEach(walk);
+  return result.replace(/ {2,}/g, ' ').trim();
+}
+
+function onRichEditorInput() { onFormInput(); }
+
+// ====================== MODAL ======================
+function openModal() {
+  document.getElementById('createModal').classList.add('visible');
+  document.getElementById('fTitle').value = '';
+  document.getElementById('titleCount').textContent = '0 / 10';
+  document.getElementById('previewBox').textContent = '在上方填写提示词后，这里将显示填充效果预览...';
+  formTagsList = [];
+  formCat      = '';
+  skillRef     = '';
+  editorSavedRange = null;
+  cancelTimer();
+  cancelInsertSkill();
+  document.querySelectorAll('.cat-opt').forEach(o => o.classList.remove('selected'));
+  renderOfficialTags();
+
+  // 初始化示例：含时间戳 + Skill chip 的混合提示词
+  const editor = document.getElementById('fPromptRich');
+  editor.innerHTML = '';
+  editor.appendChild(createTimerChipEl('每天 09:00'));
+  editor.appendChild(document.createTextNode('\u00a0帮我通过\u00a0'));
+  editor.appendChild(createSkillChipEl('互联网内容调研'));
+  editor.appendChild(document.createTextNode('\u00a0搜索【行业/关键词】的最新动态，整理成简报发给我'));
+  updateTimerChipDels();
+  updateSkillChipDels();
+  onFormInput();
+}
+
+function closeModal() {
+  document.getElementById('createModal').classList.remove('visible');
+  closeSkillRefDrop();
+  cancelTimer();
+  cancelInsertSkill();
+}
+
+document.getElementById('createModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('createModal')) closeModal();
+});
+
+function onFormInput() {
+  const title = document.getElementById('fTitle').value;
+  const cnt   = document.getElementById('titleCount');
+  cnt.textContent = `${title.length} / 10`;
+  cnt.className   = 'char-count' + (title.length > 10 ? ' over' : '');
+
+  const rawText = getRichPromptText();
+
+  const pb = document.getElementById('previewBox');
+  if (rawText.trim()) {
+    // 先替换 chip 占位符（颜色各异），再替换普通【】字段
+    pb.innerHTML = rawText
+      .replace(/\x02TIMER\x03([^\x02]+)\x02\/TIMER\x03/g,
+        '<span class="prev-timer">⏰ $1</span>')
+      .replace(/\x02SKILL\x03([^\x02]+)\x02\/SKILL\x03/g,
+        '<span class="prev-skill">⚡ $1</span>')
+      .replace(/【([^】]+)】/g,
+        '<span class="prev-highlight">$1</span>');
+  } else {
+    pb.textContent = '在上方填写提示词后，这里将显示填充效果预览...';
+  }
+}
+
+function pickCat(el) {
+  document.querySelectorAll('.cat-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  formCat = el.dataset.cat;
+}
+
+// ---- 标签：官方预置点选 ----
+function renderOfficialTags() {
+  const pool = document.getElementById('officialTagsPool');
+  if (!pool) return;
+  pool.innerHTML = TAGS_LIST.map(tag => {
+    const selected = formTagsList.includes(tag);
+    const disabled = !selected && formTagsList.length >= 3;
+    return `<span class="off-tag ${selected?'off-tag-selected':''} ${disabled?'off-tag-disabled':''}"
+      onclick="toggleFormTag('${tag}')">${selected ? '✓ ' : ''}${tag}</span>`;
+  }).join('');
+}
+
+function toggleFormTag(tag) {
+  if (formTagsList.includes(tag)) {
+    formTagsList = formTagsList.filter(t => t !== tag);
+  } else {
+    if (formTagsList.length >= 3) return;
+    formTagsList.push(tag);
+  }
+  renderOfficialTags();
+}
+
+// 将占位符转成最终存储格式
+function getCleanPrompt() {
+  const raw = getRichPromptText();
+  return raw
+    .replace(/\x02TIMER\x03([^\x02]+)\x02\/TIMER\x03/g, '【$1】')
+    .replace(/\x02SKILL\x03([^\x02]+)\x02\/SKILL\x03/g, '[$1] ')
+    .trim();
+}
+
+function submitForm() {
+  const title  = document.getElementById('fTitle').value.trim();
+  const prompt = getCleanPrompt();
+  if (!title)   { showToast('⚠️ 请填写条目标题'); return; }
+  if (!prompt)  { showToast('⚠️ 请填写提示词正文'); return; }
+  if (!formCat) { showToast('⚠️ 请选择主分类'); return; }
+  closeModal();
+  showToast('🎉 已提交审核，审核通过后将展示在灵感广场');
+}
+
+// ====================== TOAST ======================
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+// ====================== INIT ======================
+(function init() {
+  renderSqTabs();
+  renderTagCloud();
+  renderCards();
+  renderPopupTabs();
+})();
+</script>
+</body>
+</html>

@@ -58,8 +58,8 @@
             <span class="cap-card-sub">基于 OpenClaw</span>
           </div>
           <ul class="cap-list">
-            <li><span class="cap-row-label">本地</span>Node + Gateway</li>
-            <li><span class="cap-row-label">云端</span>云端 Gateway</li>
+            <li><span class="cap-row-label">机器</span>本地 Node 机器 / 云端机器（每人一个）</li>
+            <li><span class="cap-row-label">Agent</span>本地 Gateway / 云端 Gateway</li>
             <li><span class="cap-row-label">渠道</span>IM · Web · 客户端</li>
           </ul>
         </div>
@@ -72,8 +72,8 @@
             <span class="cap-card-title">CodeFlicker</span>
           </div>
           <ul class="cap-list">
-            <li><span class="cap-row-label">本地</span>IDE 编辑器 · Duet 模式</li>
-            <li><span class="cap-row-label">云端</span>云端 IDE · Duet 模式</li>
+            <li><span class="cap-row-label">机器</span>本地 IDE 机器 / <span style="color:#d1d5db">云端机器</span> <span style="font-size:10px;color:#f59e0b;background:#fef3c7;padding:1px 5px;border-radius:3px;font-weight:600">TODO</span></li>
+            <li><span class="cap-row-label">Agent</span>本地 IDE · Duet 模式 / <span style="color:#d1d5db">云端 IDE · Duet 模式</span></li>
             <li><span class="cap-row-label">渠道</span>Web · 客户端 · IDE · CLI</li>
           </ul>
         </div>
@@ -137,7 +137,7 @@
             <div class="pm-node pm-node-assets">
               <div class="pm-node-icon">🗂</div>
               <div class="pm-node-title">Assets</div>
-              <div class="pm-node-sub">项目关联资产</div>
+              <div class="pm-node-sub">项目关联资产<br>绑定到工作机器</div>
               <div class="pm-node-tags">
                 <span class="pm-output-tag">本地 Workspace</span>
                 <span class="pm-output-tag">云端文件</span>
@@ -231,11 +231,11 @@
       <div class="context-diff">
         <div class="cd-col cd-col-cf">
           <div class="cd-label">CF Agent</div>
-          <div class="cd-badge cd-badge-isolation">物理隔离</div>
+          <div class="cd-badge cd-badge-isolation">上下文聚焦圈</div>
           <ul class="cd-list">
-            <li>访问边界 = workspace 文件夹</li>
-            <li>文件夹即沙箱，边界清晰</li>
-            <li>跨项目需切换工作区</li>
+            <li>workspace 为上下文锚点</li>
+            <li>实际可跨出访问其他目录</li>
+            <li>跨项目需切换工作区或用户明确指令</li>
           </ul>
         </div>
         <div class="cd-col cd-col-gw">
@@ -245,13 +245,13 @@
             <li>默认可访问全部云端文件</li>
             <li>项目资产自动注入为优先上下文</li>
             <li>用户指令可随时扩展边界</li>
-            <li><strong>独有：</strong>跨项目直接引用</li>
+            <li><strong>更强：</strong>跨项目直接引用无需切换</li>
           </ul>
         </div>
       </div>
 
       <div class="doc-callout">
-        💡 OpenClaw 的全局访问不需要被限制，「项目」对它来说是<strong>上下文锚点</strong>而非沙箱。用户可以在 Session 里说「参考我在 XX 项目里做过的方案」，Agent 直接跨项目读取——这是 CF Agent 不具备的能力。
+        💡 两种 Agent 都不强制物理隔离，差异在于「上下文聚焦圈」的默认范围和跨界成本。CF Agent 以 workspace 为锚点但可跨出，Gateway 以项目资产为锚点且跨项目成本更低。「项目」对两者都是<strong>上下文锚点</strong>而非沙箱。
       </div>
 
       <!-- ── 6. 整体信息架构 ── -->
@@ -579,7 +579,7 @@ const decisions = [
     num: '决策 A',
     title: '双 Agent 共存，不强制统一底层',
     desc: 'CF 自研 Agent 和 Gateway Agent 各自保留特长，项目层不感知使用哪个。',
-    rationale: '两套 Agent 能力差异是真实的（物理隔离 vs 全局访问），强行统一会损失能力，不如让用户按任务选择。'
+    rationale: '两套 Agent 能力差异是真实的（上下文聚焦圈深度不同、跨项目能力差异），强行统一会损失能力，不如让用户按任务选择。'
   },
   {
     num: '决策 B',
@@ -589,9 +589,9 @@ const decisions = [
   },
   {
     num: '决策 C',
-    title: '项目上下文模型 = 「文件夹」',
-    desc: 'Session 之间隔离运行，通过共享 /outputs/ 目录异步传递产出，看不到彼此对话上下文。',
-    rationale: '「文件夹」是用户已经理解的心智模型，工程复杂度可控，同时支撑 Duet 模式的核心价值。'
+    title: '「上下文聚焦圈」模型，不强制物理隔离',
+    desc: 'Session 之间隔离运行，通过共享 /outputs/ 目录异步传递产出，看不到彼此对话上下文。Agent 不强制物理隔离文件访问，项目资产作为"上下文锚点"提高优先级，Agent 可根据用户指令扩展访问边界。',
+    rationale: 'CF 和 OpenClaw 实际都能跨出访问，"物理隔离"是软性引导而非硬性限制。用户可以在 Session 里说「参考我在 XX 项目里做过的方案」，Agent 可以直接跨项目读取。'
   },
   {
     num: '决策 D',
@@ -601,9 +601,9 @@ const decisions = [
   },
   {
     num: '决策 E',
-    title: '项目是永久的，类 GitHub repo',
-    desc: '项目不是一次性工作台，而是长期积累工作成果的容器。',
-    rationale: '用户已经理解 repo 的心智模型，降低学习成本；长期沉淀的 outputs 和 sessions 才有复用价值。'
+    title: '会话统一管理到云，全渠道打通',
+    desc: '无论 Agent 在本地机器还是云端机器运行，会话元数据统一存储到云端，实现跨端访问和管理。',
+    rationale: '用户可以在 IM 发起的 session，在 Web 端继续对话；在桌面端创建的项目，在 IM 里也能看到。会话云端化是全渠道体验的前提。'
   },
 ]
 
@@ -629,10 +629,13 @@ const todoDone = [
   '新建对话流程：以输入框为中心 + 轻量 context pill 选执行位置',
   '项目概念替换原有「分组」，支持工作区绑定',
   'Session 级 Agent 路由：双 Agent 共存，不强制统一',
-  '「文件夹」上下文模型：session 隔离，通过 /outputs/ 共享产出',
-  'CF Agent 物理隔离 vs OpenClaw 上下文聚焦圈的差异界定',
+  '「上下文聚焦圈」模型：不强制物理隔离，软性引导访问优先级',
+  'CF Agent 和 Gateway Agent 的上下文差异界定（锚点范围 + 跨界成本）',
   '项目生命周期：永久，类 GitHub repo',
   '项目入口：模板创建 + 独立对话升级',
+  'Agent 统一接口层（CF Agent / Gateway Agent 共用 session 协议）→ 交给研发',
+  '会话统一管理到云，全渠道打通',
+  '资产与工作机器绑定（本地机器 / 云端机器）',
 ]
 
 const todoDoing = [
@@ -640,7 +643,6 @@ const todoDoing = [
 ]
 
 const todoOpen = [
-  'Agent 统一接口层：CF Agent 和 Gateway Agent 如何共用同一套 session 协议？',
   'Outputs 视图 UI：如何清晰呈现多个并行 session 的产出，防止信噪比差？',
   '独立对话升级为项目的交互流程：触发时机、迁移逻辑、Assets 归属',
   'Duet 模式 session 的 UI 表达：多标签？分屏？如何感知并行状态？',

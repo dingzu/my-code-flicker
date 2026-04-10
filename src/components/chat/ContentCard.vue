@@ -1,5 +1,6 @@
 <template>
   <div class="content-card-wrap">
+    <!-- Main chat card -->
     <div class="content-card">
       <!-- Card header -->
       <div class="card-header">
@@ -33,11 +34,11 @@
       </template>
     </div>
 
-    <!-- Assets Panel -->
-    <AssetsPanel v-if="assetsOpen" @close="assetsOpen = false" @select-asset="onSelectAsset" />
-
     <!-- Asset Preview -->
     <AssetPreview v-if="previewAsset" :asset="previewAsset" @close="previewAsset = null" />
+
+    <!-- Assets Panel -->
+    <AssetsPanel v-if="assetsOpen" @close="assetsOpen = false" @select-asset="onSelectAsset" />
   </div>
 </template>
 

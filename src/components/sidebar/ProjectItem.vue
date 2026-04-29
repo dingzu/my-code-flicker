@@ -7,11 +7,6 @@
         </svg>
       </span>
       <span class="project-name">{{ project.name }}</span>
-      <span v-if="project.hasWorkspace" class="project-ws-badge" title="已绑定本地工作区">
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-        </svg>
-      </span>
     </div>
 
     <div class="project-children" :class="{ hidden: !project.expanded }">
@@ -58,12 +53,6 @@ const sidebarStore = useSidebarStore()
 }
 .project-chevron.open { transform: rotate(90deg); }
 .project-name { flex: 1; font-weight: 400; }
-.project-ws-badge {
-  width: 16px; height: 16px; border-radius: 4px;
-  background: #dcfce7; color: #16a34a;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
 .project-children {
   padding-left: 20px;
   overflow: hidden;

@@ -1,63 +1,132 @@
 <template>
   <div class="content-card-wrap">
-    <!-- Main chat card -->
-    <div class="content-card">
-      <!-- Card header -->
-      <div class="card-header">
-        <div class="card-title-icon"></div>
-        <span class="card-title">{{ sidebarStore.activeSessionName }}</span>
-
-        <div class="card-header-actions">
-          <button
-            class="header-btn"
-            :class="{ 'header-btn-active': assetsOpen }"
-            @click="assetsOpen = !assetsOpen"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-              <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
-              <polyline points="13 2 13 9 20 9"/>
-            </svg>
-            资产
-          </button>
+    <!-- 技能市场页面 -->
+    <template v-if="sidebarStore.activeNav === 'skill-market'">
+      <div class="skill-management-card">
+        <div class="card-header">
+          <div class="card-title-icon"></div>
+          <span class="card-title">技能市场</span>
+        </div>
+        <div class="card-body">
+          <SkillMarketPage />
         </div>
       </div>
+    </template>
 
-      <!-- New chat view (no messages yet) -->
-      <NewChatView v-if="isNewChat" />
-
-      <!-- Chat body (has messages) -->
-      <template v-else>
-        <div class="card-body" ref="bodyRef">
-          <ChatMessages :messages="currentMessages" />
+    <!-- 技能管理页面 -->
+    <template v-else-if="sidebarStore.activeNav === 'skills'">
+      <div class="skill-management-card">
+        <div class="card-header">
+          <div class="card-title-icon"></div>
+          <span class="card-title">技能管理</span>
         </div>
-        <ChatInput />
-      </template>
-    </div>
+        <div class="card-body">
+          <SkillManagementPage />
+        </div>
+      </div>
+    </template>
 
-    <!-- Asset Preview -->
-    <AssetPreview v-if="previewAsset" :asset="previewAsset" @close="previewAsset = null" />
+    <!-- 团队管理页面 -->
+    <template v-else-if="sidebarStore.activeNav === 'team-management'">
+      <div class="skill-management-card">
+        <div class="card-header">
+          <div class="card-title-icon"></div>
+          <span class="card-title">团队管理</span>
+        </div>
+        <div class="card-body">
+          <TeamManagementPage />
+        </div>
+      </div>
+    </template>
 
-    <!-- Assets Panel -->
-    <AssetsPanel v-if="assetsOpen" @close="assetsOpen = false" @select-asset="onSelectAsset" />
+    <!-- 数字员工管理页面 -->
+    <template v-else-if="sidebarStore.activeNav === 'digital-employees'">
+      <div class="skill-management-card">
+        <div class="card-header">
+          <div class="card-title-icon"></div>
+          <span class="card-title">数字员工</span>
+        </div>
+        <div class="card-body">
+          <DigitalEmployeeManagementPage />
+        </div>
+      </div>
+    </template>
+
+    <!-- 任务管理页面 -->
+    <template v-else-if="sidebarStore.activeNav === 'schedule'">
+      <div class="skill-management-card">
+        <div class="card-header">
+          <div class="card-title-icon"></div>
+          <span class="card-title">任务管理</span>
+        </div>
+        <div class="card-body">
+          <TaskManagementPage />
+        </div>
+      </div>
+    </template>
+
+    <!-- 普通对话页面 -->
+    <template v-else>
+      <div class="content-card">
+        <!-- Card header -->
+        <div class="card-header">
+          <div class="card-title-icon"></div>
+          <span class="card-title">{{ sidebarStore.activeSessionName }}</span>
+        </div>
+
+        <!-- New chat view (no messages yet) -->
+        <NewChatView v-if="isNewChat" />
+
+        <!-- Chat body (has messages) -->
+        <template v-else>
+          <div class="card-body" ref="bodyRef" v-show="!previewExpanded">
+            <ChatMessages :messages="currentMessages" />
+          </div>
+          <ChatInput v-show="!previewExpanded" />
+        </template>
+      </div>
+
+      <!-- Asset Preview -->
+      <AssetPreview 
+        v-if="previewAsset" 
+        :asset="previewAsset" 
+        :expanded="previewExpanded"
+        :class="{ 'preview-expanded': previewExpanded }"
+        @close="previewAsset = null; previewExpanded = false" 
+        @toggle-expand="togglePreviewExpand" 
+      />
+    </template>
   </div>
 </template>
 
 <script setup>
 import { computed, ref, watch, nextTick } from 'vue'
 import { useSidebarStore } from '../../stores/sidebarStore'
+import { useAppStore } from '../../stores/appStore'
 import ChatMessages from './ChatMessages.vue'
 import ChatInput from './ChatInput.vue'
 import NewChatView from './NewChatView.vue'
-import AssetsPanel from './AssetsPanel.vue'
 import AssetPreview from './AssetPreview.vue'
+import SkillManagementPage from '../skill/SkillManagementPage.vue'
+import SkillMarketPage from '../skill/SkillMarketPage.vue'
+import TeamManagementPage from '../skill/TeamManagementPage.vue'
+import DigitalEmployeeManagementPage from '../employee/DigitalEmployeeManagementPage.vue'
+import TaskManagementPage from '../task/TaskManagementPage.vue'
 
 const sidebarStore = useSidebarStore()
 const bodyRef = ref(null)
-const assetsOpen = ref(false)
 const previewAsset = ref(null)
+const previewExpanded = ref(false)
+
+const emit = defineEmits(['select-asset'])
 
 function onSelectAsset(asset) {
   previewAsset.value = asset
+  emit('select-asset', asset)
+}
+
+function togglePreviewExpand() {
+  previewExpanded.value = !previewExpanded.value
 }
 
 const currentMessages = computed(() => {
@@ -72,6 +141,11 @@ watch(currentMessages, async () => {
   await nextTick()
   if (bodyRef.value) bodyRef.value.scrollTop = bodyRef.value.scrollHeight
 }, { deep: true })
+
+// 接收来自外部的资产选择
+defineExpose({
+  selectAsset: onSelectAsset
+})
 </script>
 
 <style>
@@ -95,6 +169,33 @@ watch(currentMessages, async () => {
   box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.06);
   min-width: 0;
 }
+
+/* 技能管理卡片样式 */
+.skill-management-card {
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-radius: var(--card-radius);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.06);
+  min-width: 0;
+}
+.skill-management-card .card-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.skill-management-card .card-body::-webkit-scrollbar {
+  width: 5px;
+}
+.skill-management-card .card-body::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.1);
+  border-radius: 3px;
+}
+
 .card-header {
   height: 48px;
   border-bottom: 1px solid rgba(0,0,0,0.06);
@@ -143,4 +244,14 @@ watch(currentMessages, async () => {
 }
 .card-body::-webkit-scrollbar { width: 5px; }
 .card-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
+
+/* 预览展开时的样式 */
+.preview-expanded {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+}
 </style>

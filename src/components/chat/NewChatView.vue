@@ -224,12 +224,28 @@
 </template>
 
 <script setup>
-import { ref, computed, inject, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, inject, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useSidebarStore } from '../../stores/sidebarStore'
 import InspirePopup from './InspirePopup.vue'
 
 const sidebarStore = useSidebarStore()
 const sheetVisible = inject('sheetVisible', null)
+
+// 监听预填充文本，当有新值时设置到输入框
+watch(() => sidebarStore.chatInputPrefill, async (newVal) => {
+  if (newVal) {
+    // 等待 DOM 更新
+    await nextTick()
+    if (richInputRef.value) {
+      richInputRef.value.innerText = newVal
+      inputText.value = newVal
+      // 清空预填充，避免重复设置
+      sidebarStore.clearChatInputPrefill()
+      // 聚焦输入框
+      richInputRef.value?.focus()
+    }
+  }
+}, { immediate: true })
 
 const inputRef = ref(null)
 const ctxWrapRef = ref(null)

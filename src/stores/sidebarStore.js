@@ -2,21 +2,12 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 export const useSidebarStore = defineStore('sidebar', () => {
-  // 团队列表
-  const teams = ref([
-    { id: 'personal', name: '个人空间', color: '#9ca3af' },
-    { id: 't1', name: 'Design', color: '#f59e0b', members: 8 },
-    { id: 't2', name: 'Engineering', color: '#3b82f6', members: 24 },
-    { id: 't3', name: 'Product', color: '#10b981', members: 6 },
-  ])
-
   const projects = ref([
     {
       id: 'proj1',
       name: 'dz-s-agent-hiro',
       hasWorkspace: true,
       expanded: true,
-      teamId: 'personal', // 所属团队
       sessions: [
         { id: 's1', name: '重构 PRD 管理平台' },
         { id: 's2', name: '分析用户留存数据' },
@@ -27,7 +18,6 @@ export const useSidebarStore = defineStore('sidebar', () => {
       name: '产品设计探索',
       hasWorkspace: false,
       expanded: false,
-      teamId: 't1', // 所属 Design 团队
       sessions: [
         { id: 's3', name: '构建 MyFlicker 世界' },
       ],
@@ -40,27 +30,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
 
   const activeSessionId = ref('s1')
 
-  // 当前选中的团队（用于资产面板筛选）
-  const activeTeamId = ref('personal')
+  // 当前激活的导航项
+  const activeNav = ref('new-chat')
 
-  // 项目筛选状态：'all' | 'personal' | 具体团队ID
-  const projectFilterType = ref('all')
-  const projectFilterTeamId = ref(null)
-
-  // 根据筛选条件过滤的项目列表
-  const filteredProjects = computed(() => {
-    if (projectFilterType.value === 'all') {
-      return projects.value
-    }
-    if (projectFilterType.value === 'personal') {
-      return projects.value.filter(p => p.teamId === 'personal')
-    }
-    // 团队筛选
-    if (projectFilterType.value === 'team' && projectFilterTeamId.value) {
-      return projects.value.filter(p => p.teamId === projectFilterTeamId.value)
-    }
-    return projects.value
-  })
+  // 新对话页的预填充输入文本（用于数字员工聊天等功能）
+  const chatInputPrefill = ref('')
 
   // 当前激活会话的元信息（名称）
   const activeSessionName = computed(() => {
@@ -70,15 +44,6 @@ export const useSidebarStore = defineStore('sidebar', () => {
     }
     const solo = standaloneConversations.value.find(s => s.id === activeSessionId.value)
     return solo ? solo.name : '新对话'
-  })
-
-  // 当前激活会话所属项目
-  const activeProject = computed(() => {
-    for (const proj of projects.value) {
-      const found = proj.sessions.find(s => s.id === activeSessionId.value)
-      if (found) return proj
-    }
-    return null
   })
 
   // 消息记录，按 sessionId 存储
@@ -132,17 +97,25 @@ export const useSidebarStore = defineStore('sidebar', () => {
 
   function openSession(sessionId) {
     activeSessionId.value = sessionId
-    // 自动切换到对应项目的团队
-    const proj = projects.value.find(p => p.sessions.some(s => s.id === sessionId))
-    if (proj && proj.teamId) {
-      activeTeamId.value = proj.teamId
-    }
   }
 
   function openNewChat(name = '新对话') {
     const id = 'solo_' + Date.now()
     standaloneConversations.value.push({ id, name })
     activeSessionId.value = id
+    activeNav.value = 'new-chat'
+  }
+
+  function setActiveNav(navId) {
+    activeNav.value = navId
+  }
+
+  function setChatInputPrefill(text) {
+    chatInputPrefill.value = text
+  }
+
+  function clearChatInputPrefill() {
+    chatInputPrefill.value = ''
   }
 
   function newChatInProject(projId) {
@@ -167,32 +140,18 @@ export const useSidebarStore = defineStore('sidebar', () => {
       name,
       hasWorkspace: mode === 'workspace',
       expanded: true,
-      teamId: activeTeamId.value, // 使用当前选中的团队
       sessions: [],
     })
     newChatInProject(id)
   }
 
-  function setActiveTeam(teamId) {
-    activeTeamId.value = teamId
-  }
-
-  function setProjectFilter(type, teamId = null) {
-    projectFilterType.value = type
-    projectFilterTeamId.value = teamId
-  }
-
   return {
-    teams,
     projects,
-    filteredProjects,
-    projectFilterType,
-    projectFilterTeamId,
     standaloneConversations,
     activeSessionId,
     activeSessionName,
-    activeProject,
-    activeTeamId,
+    activeNav,
+    chatInputPrefill,
     messages,
     getMessages,
     sendMessage,
@@ -201,7 +160,8 @@ export const useSidebarStore = defineStore('sidebar', () => {
     newChatInProject,
     toggleProject,
     createProject,
-    setActiveTeam,
-    setProjectFilter,
+    setActiveNav,
+    setChatInputPrefill,
+    clearChatInputPrefill,
   }
 })

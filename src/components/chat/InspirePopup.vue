@@ -1,5 +1,5 @@
 <template>
-  <div class="inspire-popup" v-show="visible">
+  <div class="inspire-popup" v-show="visible" @click.stop>
     <!-- Top bar -->
     <div class="popup-topbar">
       <div class="popup-title">灵感触发</div>
@@ -27,7 +27,7 @@
         :key="tab"
         class="popup-tab"
         :class="{ active: activeTab === tab }"
-        @click="setTab(tab)"
+        @click.stop="setTab(tab)"
       >
         {{ tab }}
       </button>
@@ -104,7 +104,7 @@
 
     <!-- Footer -->
     <div class="popup-footer">
-      <a @click.stop="goToSquare">去灵感广场探索更多条目 →</a>
+      <a @click="goToSquare">去灵感广场探索更多条目 →</a>
     </div>
   </div>
 </template>
@@ -517,7 +517,7 @@ defineExpose({
 
 .popup-footer a {
   font-size: 11.5px;
-  color: #6b7280;
+  color: #9ca3af;
   text-decoration: none;
   cursor: pointer;
   font-weight: 500;
@@ -525,6 +525,265 @@ defineExpose({
 }
 
 .popup-footer a:hover {
-  color: #111827;
+  color: #374151;
+}
+
+@keyframes popupIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.popup-topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 10px;
+}
+
+.popup-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.popup-search-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.search-icon {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.popup-search-wrap input {
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 13px;
+  color: #374151;
+  width: 100%;
+  font-family: inherit;
+}
+
+.popup-search-wrap input::placeholder {
+  color: #9ca3af;
+}
+
+.popup-tabs {
+  display: flex;
+  padding: 0 10px;
+  gap: 2px;
+  border-bottom: 1px solid #f3f4f6;
+  overflow-x: auto;
+}
+
+.popup-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.popup-tab {
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-size: 13px;
+  color: #6b7280;
+  white-space: nowrap;
+  transition: all 0.15s;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  font-family: inherit;
+}
+
+.popup-tab.active {
+  color: #6366f1;
+  border-bottom-color: #6366f1;
+  font-weight: 600;
+}
+
+.popup-tab:hover:not(.active) {
+  color: #374151;
+  background: #f9fafb;
+}
+
+.popup-items {
+  max-height: 290px;
+  overflow-y: auto;
+  padding: 6px 8px;
+}
+
+.popup-items::-webkit-scrollbar {
+  width: 4px;
+}
+
+.popup-items::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 2px;
+}
+
+.popup-item {
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.12s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.popup-item:hover {
+  background: #f5f3ff;
+}
+
+.popup-item:hover .popup-item-btns {
+  opacity: 1;
+}
+
+.popup-item-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.popup-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.popup-item-preview {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.popup-item-btns {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.pi-btn {
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.pi-btn-add {
+  background: #eef2ff;
+  color: #6366f1;
+}
+
+.pi-btn-add:hover {
+  background: #6366f1;
+  color: white;
+}
+
+.pi-btn-add.added {
+  background: #d1fae5;
+  color: #065f46;
+  cursor: default;
+}
+
+.pi-btn-del {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.pi-btn-del:hover {
+  background: #dc2626;
+  color: white;
+}
+
+.p-tag {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border-radius: 4px;
+  font-size: 11px;
+  padding: 2px 7px;
+  font-weight: 500;
+}
+
+.p-tag.skill {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.p-tag.timer {
+  background: #fef3c7;
+  color: #d4913a;
+}
+
+.p-tag.plain {
+  background: #eef0f3;
+  color: #8c96a6;
+}
+
+.popup-empty {
+  text-align: center;
+  padding: 36px 16px;
+  color: #9ca3af;
+}
+
+.popup-empty-icon {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.popup-empty p {
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.popup-footer {
+  border-top: 1px solid #f3f4f6;
+  padding: 10px 16px;
+  text-align: center;
+}
+
+.popup-footer a {
+  font-size: 12px;
+  color: #6366f1;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.popup-footer a:hover {
+  text-decoration: underline;
 }
 </style>

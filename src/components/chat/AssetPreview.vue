@@ -4,7 +4,7 @@
     <div class="preview-tabs-bar">
       <div class="preview-tab preview-tab-active">
         <span class="preview-tab-icon">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="#e34234">
+          <svg width="12" height="12" viewBox="0 0 24 24" :fill="getFileIconColor()">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
             <polyline points="14 2 14 8 20 8" fill="none" stroke="white" stroke-width="1.5"/>
           </svg>
@@ -19,7 +19,7 @@
       <!-- Ghost duplicate tab (matches screenshot) -->
       <div class="preview-tab preview-tab-ghost">
         <span class="preview-tab-icon">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="#e34234">
+          <svg width="12" height="12" viewBox="0 0 24 24" :fill="getFileIconColor()">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
             <polyline points="14 2 14 8 20 8" fill="none" stroke="white" stroke-width="1.5"/>
           </svg>
@@ -28,10 +28,17 @@
       </div>
     </div>
 
+    <!-- Image Edit Toolbar (only for images) -->
+    <ImageEditToolbar 
+      v-if="isImage"
+      :active-tool="activeEditTool"
+      @select-tool="handleSelectTool"
+    />
+
     <!-- Toolbar -->
     <div class="preview-toolbar">
       <!-- Page nav -->
-      <div class="preview-page-nav">
+      <div class="preview-page-nav" v-if="!isImage">
         <button class="ptb" @click="prevPage" :disabled="page <= 1">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <polyline points="15 18 9 12 15 6"/>
@@ -81,12 +88,9 @@
             <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
           </svg>
         </button>
-        <button class="ptb" title="全屏">
+        <button class="ptb" :title="expanded ? '退出展开' : '展开'" @click="$emit('toggle-expand')">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <polyline points="15 3 21 3 21 9"/>
-            <polyline points="9 21 3 21 3 15"/>
-            <line x1="21" y1="3" x2="14" y2="10"/>
-            <line x1="3" y1="21" x2="10" y2="14"/>
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
           </svg>
         </button>
         <button class="ptb" title="关闭" @click="$emit('close')">
@@ -97,10 +101,16 @@
       </div>
     </div>
 
-    <!-- Doc content -->
-    <div class="preview-body">
+    <!-- Content body -->
+    <div class="preview-body" :class="{ 'preview-body-image': isImage }">
       <div class="preview-scale-wrap" :style="{ transform: `scale(${zoom / 100})`, transformOrigin: 'top center' }">
-        <div class="preview-doc-page">
+        <!-- Image preview -->
+        <div v-if="isImage" class="preview-image-container">
+          <img :src="asset.url" :alt="asset.name" class="preview-image" />
+        </div>
+        
+        <!-- Document preview -->
+        <div v-else class="preview-doc-page">
           <h1 class="pdf-title">泛开发者用户场景研究</h1>
           <p class="pdf-meta">目标：分析泛开发者市场需求，明确发力方向，支持产品战略决策</p>
 
@@ -171,25 +181,64 @@
         </div>
       </div>
     </div>
+
+    <!-- Image Edit Panel -->
+    <ImageEditPanel
+      v-if="isImage && activeEditTool"
+      :active-tool="activeEditTool"
+      :image-url="asset.url"
+      @close="activeEditTool = null"
+      @generate="handleImageEdit"
+      @inpaint="handleImageEdit"
+      @outpaint="handleImageEdit"
+      @remove-bg="handleImageEdit"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import ImageEditToolbar from './ImageEditToolbar.vue'
+import ImageEditPanel from './ImageEditPanel.vue'
 
-defineProps({
+const props = defineProps({
   asset: { type: Object, required: true },
+  expanded: { type: Boolean, default: false },
 })
-defineEmits(['close'])
+const emit = defineEmits(['close', 'toggle-expand'])
 
 const page = ref(1)
 const totalPages = ref(2)
 const zoom = ref(100)
+const activeEditTool = ref(null)
+
+// Check if asset is an image
+const isImage = computed(() => {
+  const ext = props.asset.name.split('.').pop()?.toLowerCase()
+  return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)
+})
+
+// Get file icon color based on type
+function getFileIconColor() {
+  if (isImage.value) return '#34a853'
+  return '#e34234'
+}
 
 function prevPage() { if (page.value > 1) page.value-- }
 function nextPage() { if (page.value < totalPages.value) page.value++ }
 function zoomIn()  { if (zoom.value < 200) zoom.value += 10 }
 function zoomOut() { if (zoom.value > 50)  zoom.value -= 10 }
+
+function handleSelectTool(toolId) {
+  activeEditTool.value = activeEditTool.value === toolId ? null : toolId
+}
+
+function handleImageEdit(data) {
+  console.log('Image edit:', data)
+  // TODO: 调用 AI 图片编辑 API
+  // 这里可以集成实际的图片编辑服务
+  activeEditTool.value = null
+}
 </script>
 
 <style>
@@ -391,6 +440,12 @@ function zoomOut() { if (zoom.value > 50)  zoom.value -= 10 }
   display: flex;
   justify-content: center;
   background: rgba(240,242,246,0.6);
+  position: relative;
+}
+
+.preview-body-image {
+  background: rgba(30,30,35,0.95);
+  padding: 40px;
 }
 
 .preview-body::-webkit-scrollbar { width: 5px; }
@@ -399,6 +454,22 @@ function zoomOut() { if (zoom.value > 50)  zoom.value -= 10 }
 .preview-scale-wrap {
   display: inline-block;
   width: 100%;
+}
+
+/* ── Image preview ── */
+.preview-image-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 80vh;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1);
+  object-fit: contain;
 }
 
 /* ── Document page ── */

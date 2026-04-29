@@ -7,10 +7,25 @@
     :style="windowStyle"
     @mousedown="bringToFront"
   >
-    <Sidebar />
+    <Sidebar v-if="appStore.sidebarVisible" />
+    <button
+      v-else
+      class="sidebar-expand-btn"
+      @click="appStore.toggleSidebar()"
+      title="展开侧边栏"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <line x1="9" y1="3" x2="9" y2="21"/>
+        <polyline points="14 9 17 12 14 15"/>
+      </svg>
+    </button>
     <div class="content-area">
-      <ContentCard />
+      <ContentCard @select-asset="onSelectAsset" />
     </div>
+    
+    <!-- 右侧工具栏 -->
+    <RightSideBar @select-asset="onSelectAsset" />
   </div>
 </template>
 
@@ -20,6 +35,7 @@ import { useAppStore } from '../../stores/appStore'
 import { useDraggable } from '../../composables/useDraggable'
 import Sidebar from '../sidebar/Sidebar.vue'
 import ContentCard from '../chat/ContentCard.vue'
+import RightSideBar from '../chat/RightSideBar.vue'
 
 const appStore = useAppStore()
 const winRef = ref(null)
@@ -73,6 +89,11 @@ function bringToFront() {
   if (topZ > 8900) topZ = 1500
   zIndex.value = topZ
 }
+
+function onSelectAsset(asset) {
+  // 处理资产选择事件，可以在这里添加预览逻辑
+  console.log('Selected asset:', asset)
+}
 </script>
 
 <style>
@@ -113,5 +134,37 @@ function bringToFront() {
   overflow: hidden;
   padding: var(--gap);
   gap: var(--gap);
+}
+
+/* ── SIDEBAR EXPAND BUTTON ── */
+.sidebar-expand-btn {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  color: rgba(30, 30, 40, 0.6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.sidebar-expand-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  color: rgba(30, 30, 40, 0.88);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-expand-btn:active {
+  transform: translateY(-50%) scale(0.95);
 }
 </style>

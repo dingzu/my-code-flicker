@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图片编辑功能演示</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+    .header h1 {
+      font-size: 42px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .header p {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    .feature-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    }
+    .feature-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .feature-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 8px;
+    }
+    .feature-desc {
+      font-size: 14px;
+      color: #718096;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .feature-params {
+      background: #f7fafc;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+      color: #4a5568;
+    }
+    .feature-params li {
+      margin-bottom: 6px;
+      padding-left: 16px;
+      position: relative;
+    }
+    .feature-params li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: #667eea;
+      font-weight: bold;
+    }
+    .workflow {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    }
+    .workflow h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .workflow-steps {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      align-items: center;
+    }
+    .workflow-step {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      position: relative;
+    }
+    .workflow-arrow {
+      font-size: 24px;
+      color: white;
+      opacity: 0.7;
+    }
+    .tech-stack {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 16px;
+      padding: 32px;
+      margin-top: 40px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    }
+    .tech-stack h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .tech-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+    .tech-tag {
+      background: #f7fafc;
+      border: 2px solid #e2e8f0;
+      color: #4a5568;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .badge {
+      display: inline-block;
+      background: #48bb78;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎨 图片编辑功能</h1>
+      <p>为资产预览区域提供强大的 AI 图片编辑能力</p>
+    </div>
+
+    <div class="features">
+      <div class="feature-card">
+        <span class="feature-icon">🎯</span>
+        <div class="feature-title">图生图 <span class="badge">Image-to-Image</span></div>
+        <div class="feature-desc">使用 AI 生成一张风格相似的新图片，保留原图特征的同时创造新内容</div>
+        <ul class="feature-params">
+          <li>相似度调节（0-100%）</li>
+          <li>可选提示词输入</li>
+          <li>智能风格迁移</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">✏️</span>
+        <div class="feature-title">局部重绘 <span class="badge">Inpaint</span></div>
+        <div class="feature-desc">在图片上涂抹区域并输入描述词，AI 智能优化选定区域内容</div>
+        <ul class="feature-params">
+          <li>画笔大小调节（5-100px）</li>
+          <li>涂抹/擦除模式切换</li>
+          <li>优化描述输入</li>
+          <li>清空蒙版功能</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">🔲</span>
+        <div class="feature-title">图像扩展 <span class="badge">Outpaint</span></div>
+        <div class="feature-desc">修改图片尺寸并扩展，AI 自动填充新增区域保持风格一致</div>
+        <ul class="feature-params">
+          <li>方向选择（全部/上/下/左/右）</li>
+          <li>扩展尺寸调节（50-500px）</li>
+          <li>扩展提示词输入</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">✂️</span>
+        <div class="feature-title">智能抠图 <span class="badge">Remove-BG</span></div>
+        <div class="feature-desc">自动识别图片主体并智能移除背景，精准边缘检测</div>
+        <ul class="feature-params">
+          <li>自动识别/手动标记模式</li>
+          <li>边缘精细度调节（0-100%）</li>
+          <li>透明背景导出</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="workflow">
+      <h2>⚡ 使用流程</h2>
+      <div class="workflow-steps">
+        <div class="workflow-step">1️⃣ 打开图片预览</div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step">2️⃣ 选择编辑工具</div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step">3️⃣ 配置参数</div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step">4️⃣ 开始处理</div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step">5️⃣ 查看结果</div>
+      </div>
+    </div>
+
+    <div class="tech-stack">
+      <h2>🔧 技术栈</h2>
+      <div class="tech-tags">
+        <div class="tech-tag">Vue 3 Composition API</div>
+        <div class="tech-tag">CSS Backdrop Filter</div>
+        <div class="tech-tag">SVG Icons</div>
+        <div class="tech-tag">响应式设计</div>
+        <div class="tech-tag">模块化组件</div>
+        <div class="tech-tag">AI 集成就绪</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
